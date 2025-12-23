@@ -14,23 +14,45 @@ async function runMigration() {
     );
 
     await pool.query(schemaSQL);
-    console.log('Database migration completed successfully!');
+    console.log('✅ Database migration completed successfully!');
 
-    // Create default admin user (password: admin123)
-    const bcrypt = await import('bcryptjs');
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    // Check if initial admin user should be created
+    const adminEmail = process.env.INITIAL_ADMIN_EMAIL;
+    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD;
 
-    await pool.query(`
-      INSERT INTO users (email, password_hash, name, role)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (email) DO NOTHING
-    `, ['admin@dmp.com', hashedPassword, 'Admin User', 'admin']);
+    if (adminEmail && adminPassword) {
+      // Validate password strength
+      if (adminPassword.length < 12) {
+        console.warn('⚠️  Admin password should be at least 12 characters');
+      }
 
-    console.log('Default admin user created (email: admin@dmp.com, password: admin123)');
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+      const result = await pool.query(`
+        INSERT INTO users (email, password_hash, name, role)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (email) DO NOTHING
+        RETURNING id
+      `, [adminEmail, hashedPassword, 'Admin User', 'admin']);
+
+      if (result.rowCount > 0) {
+        console.log(`✅ Initial admin user created: ${adminEmail}`);
+        console.log('⚠️  Please change the password immediately after first login');
+      } else {
+        console.log('ℹ️  Admin user already exists, skipping creation');
+      }
+    } else {
+      console.log('\n📋 No initial admin user created.');
+      console.log('To create an admin user, set these environment variables:');
+      console.log('  - INITIAL_ADMIN_EMAIL');
+      console.log('  - INITIAL_ADMIN_PASSWORD (minimum 12 characters)');
+      console.log('Then run: npm run db:migrate\n');
+    }
 
     process.exit(0);
   } catch (error) {
-    console.error('Migration error:', error);
+    console.error('❌ Migration error:', error);
     process.exit(1);
   }
 }

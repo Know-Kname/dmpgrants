@@ -55,10 +55,6 @@ export default function Login() {
             Login
           </button>
         </form>
-
-        <div className="mt-4 text-sm text-gray-500 text-center">
-          Default: admin@dmp.com / admin123
-        </div>
       </div>
     </div>
   );

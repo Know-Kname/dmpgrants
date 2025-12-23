@@ -5,6 +5,13 @@
 
 import { body, param, query, validationResult } from 'express-validator';
 import { ValidationError } from '../utils/errors.js';
+import {
+  WORK_ORDER_TYPES,
+  WORK_ORDER_PRIORITIES,
+  GRANT_TYPES,
+  GRANT_STATUSES,
+  INVENTORY_CATEGORIES,
+} from '../utils/constants.js';
 
 /**
  * Handle validation results
@@ -51,13 +58,13 @@ export const validateWorkOrder = [
   body('type')
     .notEmpty()
     .withMessage('Type is required')
-    .isIn(['maintenance', 'burial_prep', 'grounds', 'repair', 'other'])
+    .isIn(WORK_ORDER_TYPES)
     .withMessage('Invalid work order type'),
 
   body('priority')
     .notEmpty()
     .withMessage('Priority is required')
-    .isIn(['low', 'medium', 'high', 'urgent'])
+    .isIn(WORK_ORDER_PRIORITIES)
     .withMessage('Invalid priority level'),
 
   body('assignedTo')
@@ -93,7 +100,7 @@ export const validateGrant = [
   body('type')
     .notEmpty()
     .withMessage('Type is required')
-    .isIn(['grant', 'benefit', 'opportunity'])
+    .isIn(GRANT_TYPES)
     .withMessage('Invalid grant type'),
 
   body('source')
@@ -116,7 +123,7 @@ export const validateGrant = [
   body('status')
     .notEmpty()
     .withMessage('Status is required')
-    .isIn(['available', 'applied', 'approved', 'denied', 'received'])
+    .isIn(GRANT_STATUSES)
     .withMessage('Invalid status'),
 
   body('applicationDate')
@@ -141,7 +148,7 @@ export const validateInventory = [
   body('category')
     .notEmpty()
     .withMessage('Category is required')
-    .isIn(['casket', 'urn', 'vault', 'marker', 'supplies', 'other'])
+    .isIn(INVENTORY_CATEGORIES)
     .withMessage('Invalid category'),
 
   body('quantity')
@@ -265,6 +272,64 @@ export const validateUUIDParam = [
   param('id')
     .isUUID()
     .withMessage('Invalid ID format'),
+
+  validate,
+];
+
+/**
+ * Authentication Validation Rules
+ */
+export const validateLogin = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email format')
+    .normalizeEmail(),
+
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required'),
+
+  validate,
+];
+
+export const validateRegister = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email format')
+    .normalizeEmail(),
+
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 12 })
+    .withMessage('Password must be at least 12 characters long')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage('Password must contain at least one special character'),
+
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ min: 2, max: 255 })
+    .withMessage('Name must be between 2 and 255 characters'),
+
+  body('role')
+    .notEmpty()
+    .withMessage('Role is required')
+    .isIn(['staff', 'manager'])
+    .withMessage('Invalid role. Must be staff or manager'),
 
   validate,
 ];
