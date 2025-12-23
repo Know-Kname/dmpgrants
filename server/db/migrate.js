@@ -27,7 +27,7 @@ async function runMigration() {
       }
 
       const bcrypt = await import('bcryptjs');
-      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      const hashedPassword = await bcrypt.default.hash(adminPassword, 10);
 
       const result = await pool.query(`
         INSERT INTO users (email, password_hash, name, role)
