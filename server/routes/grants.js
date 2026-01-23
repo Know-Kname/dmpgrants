@@ -7,8 +7,30 @@ router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
   try {
-    const result = await query('SELECT * FROM grants ORDER BY created_at DESC');
-    res.json(result.rows);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 1000; // Default to high limit for backwards compatibility
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const countResult = await query('SELECT COUNT(*) FROM grants');
+    const totalCount = parseInt(countResult.rows[0].count);
+
+    // Get paginated results
+    const result = await query(
+      'SELECT * FROM grants ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+      [limit, offset]
+    );
+
+    res.json({
+      data: result.rows,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasMore: offset + result.rows.length < totalCount
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

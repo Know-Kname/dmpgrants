@@ -5,17 +5,37 @@ import { authenticateToken } from '../middleware/auth.js';
 const router = express.Router();
 router.use(authenticateToken);
 
-// Get all work orders
+// Get all work orders (with pagination support)
 router.get('/', async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 1000; // Default to high limit for backwards compatibility
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const countResult = await query('SELECT COUNT(*) FROM work_orders');
+    const totalCount = parseInt(countResult.rows[0].count);
+
+    // Get paginated results
     const result = await query(`
       SELECT wo.*, u.name as assigned_to_name, c.name as created_by_name
       FROM work_orders wo
       LEFT JOIN users u ON wo.assigned_to = u.id
       LEFT JOIN users c ON wo.created_by = c.id
       ORDER BY wo.created_at DESC
-    `);
-    res.json(result.rows);
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+
+    res.json({
+      data: result.rows,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasMore: offset + result.rows.length < totalCount
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

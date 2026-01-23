@@ -2,11 +2,13 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from '../db/index.js';
+import { logAudit, AuditAction, getClientIp } from '../utils/auditLogger.js';
 
 const router = express.Router();
 
 // Login
 router.post('/login', async (req, res) => {
+  const ipAddress = getClientIp(req);
   try {
     const { email, password } = req.body;
 
@@ -16,6 +18,7 @@ router.post('/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      logAudit(AuditAction.LOGIN_FAILED, { email, reason: 'User not found' }, null, ipAddress);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -23,6 +26,7 @@ router.post('/login', async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!validPassword) {
+      logAudit(AuditAction.LOGIN_FAILED, { email, reason: 'Invalid password' }, { id: user.id, email: user.email }, ipAddress);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -31,6 +35,9 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    // Log successful login
+    logAudit(AuditAction.LOGIN_SUCCESS, { role: user.role }, { id: user.id, email: user.email }, ipAddress);
 
     res.json({
       token,
@@ -48,6 +55,7 @@ router.post('/login', async (req, res) => {
 
 // Register (admin only)
 router.post('/register', async (req, res) => {
+  const ipAddress = getClientIp(req);
   try {
     const { email, password, name, role } = req.body;
 
@@ -58,7 +66,16 @@ router.post('/register', async (req, res) => {
       [email, hashedPassword, name, role || 'staff']
     );
 
-    res.status(201).json(result.rows[0]);
+    const newUser = result.rows[0];
+
+    // Log user creation
+    logAudit(AuditAction.USER_CREATED, {
+      newUserId: newUser.id,
+      newUserEmail: newUser.email,
+      newUserRole: newUser.role
+    }, req.user, ipAddress);
+
+    res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

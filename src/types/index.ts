@@ -1,3 +1,26 @@
+// API Response Types
+export interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
+
 // User and Auth Types
 export interface User {
   id: string;

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { api } from '../lib/api';
-import { Grant } from '../types';
-import { Card, CardBody, CardHeader, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
-import { Plus, Search, DollarSign, Calendar, ExternalLink, Gift, Edit, Trash2 } from 'lucide-react';
+import { api, ApiError } from '../lib/api';
+import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState, LoadingSpinner, useToast } from '../components/ui';
+import { Plus, Search, DollarSign, Calendar, Gift, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Grants() {
@@ -13,6 +12,9 @@ export default function Grants() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -34,8 +36,18 @@ export default function Grants() {
   }, [grants, searchTerm, statusFilter, typeFilter]);
 
   const loadGrants = async () => {
-    const data = await api.get('/grants');
-    setGrants(data);
+    try {
+      setLoading(true);
+      const response = await api.get<{ data: any[]; pagination: any }>('/grants');
+      // Handle both old array format and new paginated format
+      const data = Array.isArray(response) ? response : response.data;
+      setGrants(data);
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Failed to load grants';
+      showToast('error', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterGrants = () => {
@@ -63,6 +75,7 @@ export default function Grants() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setSubmitting(true);
       const payload = {
         ...formData,
         amount: formData.amount ? parseFloat(formData.amount) : null,
@@ -70,15 +83,20 @@ export default function Grants() {
 
       if (editingGrant) {
         await api.put(`/grants/${editingGrant.id}`, payload);
+        showToast('success', 'Grant updated successfully');
       } else {
         await api.post('/grants', payload);
+        showToast('success', 'Grant created successfully');
       }
       setShowModal(false);
       setEditingGrant(null);
       resetForm();
       loadGrants();
     } catch (error) {
-      console.error('Failed to save grant:', error);
+      const message = error instanceof ApiError ? error.message : 'Failed to save grant';
+      showToast('error', message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -100,8 +118,14 @@ export default function Grants() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this grant/opportunity?')) {
-      await api.delete(`/grants/${id}`);
-      loadGrants();
+      try {
+        await api.delete(`/grants/${id}`);
+        showToast('success', 'Grant deleted successfully');
+        loadGrants();
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Failed to delete grant';
+        showToast('error', message);
+      }
     }
   };
 
@@ -254,7 +278,16 @@ export default function Grants() {
       </Card>
 
       {/* Grants List */}
-      {filteredGrants.length === 0 ? (
+      {loading ? (
+        <Card>
+          <CardBody>
+            <div className="py-12">
+              <LoadingSpinner size="lg" />
+              <p className="text-center text-gray-500 mt-4">Loading grants...</p>
+            </div>
+          </CardBody>
+        </Card>
+      ) : filteredGrants.length === 0 ? (
         <Card>
           <CardBody>
             <EmptyState
@@ -287,7 +320,7 @@ export default function Grants() {
                     )}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
-                        <ExternalLink size={14} />
+                        <Gift size={14} />
                         <span className="font-medium">{grant.source}</span>
                       </div>
                       {grant.amount && (
@@ -351,11 +384,11 @@ export default function Grants() {
         size="lg"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowModal(false)}>
+            <Button variant="ghost" onClick={() => setShowModal(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSubmit}>
-              {editingGrant ? 'Update' : 'Add'}
+            <Button variant="primary" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? 'Saving...' : editingGrant ? 'Update' : 'Add'}
             </Button>
           </>
         }

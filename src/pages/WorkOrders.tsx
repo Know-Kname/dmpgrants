@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { api } from '../lib/api';
-import { WorkOrder } from '../types';
-import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
-import { Plus, Search, Filter, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
+import { api, ApiError } from '../lib/api';
+import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState, LoadingSpinner, useToast } from '../components/ui';
+import { Plus, Search, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function WorkOrders() {
@@ -12,6 +11,9 @@ export default function WorkOrders() {
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -30,8 +32,18 @@ export default function WorkOrders() {
   }, [workOrders, searchTerm, statusFilter]);
 
   const loadWorkOrders = async () => {
-    const data = await api.get('/work-orders');
-    setWorkOrders(data);
+    try {
+      setLoading(true);
+      const response = await api.get<{ data: any[]; pagination: any }>('/work-orders');
+      // Handle both old array format and new paginated format
+      const data = Array.isArray(response) ? response : response.data;
+      setWorkOrders(data);
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Failed to load work orders';
+      showToast('error', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterOrders = () => {
@@ -54,17 +66,23 @@ export default function WorkOrders() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setSubmitting(true);
       if (editingOrder) {
         await api.put(`/work-orders/${editingOrder.id}`, formData);
+        showToast('success', 'Work order updated successfully');
       } else {
         await api.post('/work-orders', formData);
+        showToast('success', 'Work order created successfully');
       }
       setShowModal(false);
       setEditingOrder(null);
       resetForm();
       loadWorkOrders();
     } catch (error) {
-      console.error('Failed to save work order:', error);
+      const message = error instanceof ApiError ? error.message : 'Failed to save work order';
+      showToast('error', message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -83,8 +101,14 @@ export default function WorkOrders() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this work order?')) {
-      await api.delete(`/work-orders/${id}`);
-      loadWorkOrders();
+      try {
+        await api.delete(`/work-orders/${id}`);
+        showToast('success', 'Work order deleted successfully');
+        loadWorkOrders();
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Failed to delete work order';
+        showToast('error', message);
+      }
     }
   };
 
@@ -173,7 +197,16 @@ export default function WorkOrders() {
       </Card>
 
       {/* Work Orders List */}
-      {filteredOrders.length === 0 ? (
+      {loading ? (
+        <Card>
+          <CardBody>
+            <div className="py-12">
+              <LoadingSpinner size="lg" />
+              <p className="text-center text-gray-500 mt-4">Loading work orders...</p>
+            </div>
+          </CardBody>
+        </Card>
+      ) : filteredOrders.length === 0 ? (
         <Card>
           <CardBody>
             <EmptyState
@@ -284,11 +317,11 @@ export default function WorkOrders() {
         title={editingOrder ? 'Edit Work Order' : 'Create New Work Order'}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowModal(false)}>
+            <Button variant="ghost" onClick={() => setShowModal(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSubmit}>
-              {editingOrder ? 'Update' : 'Create'}
+            <Button variant="primary" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? 'Saving...' : editingOrder ? 'Update' : 'Create'}
             </Button>
           </>
         }

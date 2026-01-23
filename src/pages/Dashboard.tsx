@@ -1,11 +1,70 @@
-import { useEffect, useState } from 'react';
-import { api } from '../lib/api';
-import { Card, CardHeader, CardBody, LoadingSpinner } from '../components/ui';
+import { useEffect, useState, memo } from 'react';
+import { api, ApiError } from '../lib/api';
+import { Card, CardHeader, CardBody, LoadingSpinner, useToast } from '../components/ui';
 import {
   ClipboardList, Package, DollarSign, Users, AlertCircle,
-  TrendingUp, Calendar, CheckCircle2, Clock
+  TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
+
+// Memoized stat card component for performance
+const StatCard = memo(({ card }: { card: any }) => (
+  <Card hoverable className="relative overflow-hidden">
+    <CardBody>
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-gray-500 text-sm font-medium mb-1">{card.label}</p>
+          <p className="text-3xl font-bold text-gray-900 mb-1">{card.value}</p>
+          <p className="text-xs text-gray-500">{card.subtitle}</p>
+          {card.trend && (
+            <div className="flex items-center mt-2 text-green-600 text-xs font-medium">
+              <TrendingUp size={14} className="mr-1" />
+              {card.trend}
+            </div>
+          )}
+        </div>
+        <div className={`${card.color} p-4 rounded-xl`}>
+          <card.icon className="text-white" size={28} />
+        </div>
+      </div>
+      {card.alert && (
+        <div className="absolute top-3 right-3">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+        </div>
+      )}
+    </CardBody>
+  </Card>
+));
+StatCard.displayName = 'StatCard';
+
+// Memoized activity item component
+const ActivityItem = memo(({ activity }: { activity: any }) => (
+  <div className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
+    <div className={`p-2 rounded-lg ${activity.type === 'work_order' ? 'bg-blue-100' : 'bg-purple-100'}`}>
+      {activity.type === 'work_order' ? (
+        <ClipboardList size={16} className="text-blue-600" />
+      ) : (
+        <Users size={16} className="text-purple-600" />
+      )}
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
+      <p className="text-xs text-gray-500 mt-0.5">
+        {format(new Date(activity.date), 'MMM d, yyyy')}
+      </p>
+    </div>
+    {activity.status && (
+      <span className={`text-xs px-2 py-1 rounded-full ${
+        activity.status === 'completed' ? 'bg-green-100 text-green-700' :
+        activity.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+        'bg-yellow-100 text-yellow-700'
+      }`}>
+        {activity.status.replace('_', ' ')}
+      </span>
+    )}
+  </div>
+));
+ActivityItem.displayName = 'ActivityItem';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +75,7 @@ export default function Dashboard() {
     burials: { total: 0, thisMonth: 0 },
   });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const { showToast } = useToast();
 
   useEffect(() => {
     loadDashboardData();
@@ -24,12 +84,18 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [workOrders, inventory, receivables, burials] = await Promise.all([
+      const [workOrdersRes, inventoryRes, receivablesRes, burialsRes] = await Promise.all([
         api.get('/work-orders'),
         api.get('/inventory'),
         api.get('/financial/receivables'),
         api.get('/burials'),
       ]);
+
+      // Handle paginated responses
+      const workOrders = Array.isArray(workOrdersRes) ? workOrdersRes : workOrdersRes.data || [];
+      const inventory = Array.isArray(inventoryRes) ? inventoryRes : inventoryRes.data || [];
+      const receivables = Array.isArray(receivablesRes) ? receivablesRes : receivablesRes.data || [];
+      const burials = Array.isArray(burialsRes) ? burialsRes : burialsRes.data || [];
 
       // Calculate work order stats
       const woStats = {
@@ -83,7 +149,8 @@ export default function Dashboard() {
 
       setRecentActivity(activities);
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      const message = error instanceof ApiError ? error.message : 'Failed to load dashboard data';
+      showToast('error', message);
     } finally {
       setLoading(false);
     }
@@ -167,31 +234,7 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card) => (
-          <Card key={card.label} hoverable className="relative overflow-hidden">
-            <CardBody>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-gray-500 text-sm font-medium mb-1">{card.label}</p>
-                  <p className="text-3xl font-bold text-gray-900 mb-1">{card.value}</p>
-                  <p className="text-xs text-gray-500">{card.subtitle}</p>
-                  {card.trend && (
-                    <div className="flex items-center mt-2 text-green-600 text-xs font-medium">
-                      <TrendingUp size={14} className="mr-1" />
-                      {card.trend}
-                    </div>
-                  )}
-                </div>
-                <div className={`${card.color} p-4 rounded-xl`}>
-                  <card.icon className="text-white" size={28} />
-                </div>
-              </div>
-              {card.alert && (
-                <div className="absolute top-3 right-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                </div>
-              )}
-            </CardBody>
-          </Card>
+          <StatCard key={card.label} card={card} />
         ))}
       </div>
 
@@ -234,30 +277,7 @@ export default function Dashboard() {
           <CardBody>
             <div className="space-y-4">
               {recentActivity.map((activity, idx) => (
-                <div key={idx} className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
-                  <div className={`p-2 rounded-lg ${activity.type === 'work_order' ? 'bg-blue-100' : 'bg-purple-100'}`}>
-                    {activity.type === 'work_order' ? (
-                      <ClipboardList size={16} className="text-blue-600" />
-                    ) : (
-                      <Users size={16} className="text-purple-600" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {format(new Date(activity.date), 'MMM d, yyyy')}
-                    </p>
-                  </div>
-                  {activity.status && (
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      activity.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      activity.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {activity.status.replace('_', ' ')}
-                    </span>
-                  )}
-                </div>
+                <ActivityItem key={idx} activity={activity} />
               ))}
             </div>
           </CardBody>
