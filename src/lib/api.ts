@@ -75,11 +75,16 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return data;
 }
 
-// Generic request handler with error handling
+// Generic request handler with error handling and timeout
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeout: number = 30000 // 30 seconds default timeout
 ): Promise<T> {
+  // Create AbortController for timeout handling
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -97,10 +102,19 @@ async function request<T>(
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
     return await handleResponse<T>(response);
   } catch (error) {
+    clearTimeout(timeoutId);
+
+    // Handle timeout errors
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new ApiError(408, 'Request timeout. Please try again.');
+    }
+
     // Handle network errors
     if (error instanceof TypeError) {
       throw new ApiError(0, 'Network error. Please check your connection.');

@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './lib/auth';
 import { ToastProvider, LoadingSpinner } from './components/ui';
 import ErrorBoundary from './components/ErrorBoundary';
+import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import Layout from './components/Layout';
 
 // Lazy load pages for code splitting and better performance
@@ -61,7 +62,9 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <ToastProvider>
-            <AppRoutes />
+            <ConfirmDialogProvider>
+              <AppRoutes />
+            </ConfirmDialogProvider>
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>

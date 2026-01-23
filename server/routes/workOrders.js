@@ -1,6 +1,8 @@
 import express from 'express';
 import { query } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { validateWorkOrder, validate } from '../middleware/validation.js';
+import { body, param } from 'express-validator';
 
 const router = express.Router();
 router.use(authenticateToken);
@@ -42,7 +44,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create work order
-router.post('/', async (req, res) => {
+router.post('/', validateWorkOrder, validate, async (req, res) => {
   try {
     const { title, description, type, priority, assignedTo, dueDate } = req.body;
     const result = await query(
@@ -57,30 +59,49 @@ router.post('/', async (req, res) => {
 });
 
 // Update work order
-router.put('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, description, type, priority, status, assignedTo, dueDate, completedDate } = req.body;
-    const result = await query(
-      `UPDATE work_orders SET title = $1, description = $2, type = $3, priority = $4,
-       status = $5, assigned_to = $6, due_date = $7, completed_date = $8, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $9 RETURNING *`,
-      [title, description, type, priority, status, assignedTo, dueDate, completedDate, id]
-    );
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+router.put('/:id',
+  param('id').isUUID().withMessage('Invalid work order ID'),
+  validateWorkOrder,
+  validate,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, description, type, priority, status, assignedTo, dueDate, completedDate } = req.body;
+      const result = await query(
+        `UPDATE work_orders SET title = $1, description = $2, type = $3, priority = $4,
+         status = $5, assigned_to = $6, due_date = $7, completed_date = $8, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $9 RETURNING *`,
+        [title, description, type, priority, status, assignedTo, dueDate, completedDate, id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Work order not found' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
-});
+);
 
 // Delete work order
-router.delete('/:id', async (req, res) => {
-  try {
-    await query('DELETE FROM work_orders WHERE id = $1', [req.params.id]);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+router.delete('/:id',
+  param('id').isUUID().withMessage('Invalid work order ID'),
+  validate,
+  async (req, res) => {
+    try {
+      const result = await query('DELETE FROM work_orders WHERE id = $1 RETURNING id', [req.params.id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Work order not found' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
-});
+);
 
 export default router;

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api, ApiError } from '../lib/api';
 import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState, LoadingSpinner, useToast } from '../components/ui';
+import { useConfirm } from '../components/ConfirmDialog';
+import { useDebounce } from '../hooks/useDebounce';
 import { Plus, Search, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -14,6 +16,11 @@ export default function WorkOrders() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
+
+  // Debounce search for better performance
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,7 +36,7 @@ export default function WorkOrders() {
 
   useEffect(() => {
     filterOrders();
-  }, [workOrders, searchTerm, statusFilter]);
+  }, [workOrders, debouncedSearch, statusFilter]);
 
   const loadWorkOrders = async () => {
     try {
@@ -49,10 +56,10 @@ export default function WorkOrders() {
   const filterOrders = () => {
     let filtered = workOrders;
 
-    if (searchTerm) {
+    if (debouncedSearch) {
       filtered = filtered.filter(wo =>
-        wo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        wo.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        wo.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        wo.description?.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -99,17 +106,24 @@ export default function WorkOrders() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this work order?')) {
-      try {
-        await api.delete(`/work-orders/${id}`);
-        showToast('success', 'Work order deleted successfully');
-        loadWorkOrders();
-      } catch (error) {
-        const message = error instanceof ApiError ? error.message : 'Failed to delete work order';
-        showToast('error', message);
-      }
-    }
+  const handleDelete = (id: string, title: string) => {
+    confirm({
+      title: 'Delete Work Order',
+      message: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      variant: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/work-orders/${id}`);
+          showToast('success', 'Work order deleted successfully');
+          loadWorkOrders();
+        } catch (error) {
+          const message = error instanceof ApiError ? error.message : 'Failed to delete work order';
+          showToast('error', message);
+        }
+      },
+    });
   };
 
   const resetForm = () => {
@@ -289,12 +303,14 @@ export default function WorkOrders() {
                       <button
                         onClick={() => handleEdit(wo)}
                         className="text-primary-600 hover:text-primary-800"
+                        aria-label="Edit work order"
                       >
                         <Edit size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(wo.id)}
+                        onClick={() => handleDelete(wo.id, wo.title)}
                         className="text-red-600 hover:text-red-800"
+                        aria-label="Delete work order"
                       >
                         <Trash2 size={18} />
                       </button>

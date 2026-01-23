@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api, ApiError } from '../lib/api';
 import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState, LoadingSpinner, useToast } from '../components/ui';
+import { useConfirm } from '../components/ConfirmDialog';
+import { useDebounce } from '../hooks/useDebounce';
 import { Plus, Search, DollarSign, Calendar, Gift, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -15,6 +17,11 @@ export default function Grants() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
+
+  // Debounce search for better performance
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -33,7 +40,7 @@ export default function Grants() {
 
   useEffect(() => {
     filterGrants();
-  }, [grants, searchTerm, statusFilter, typeFilter]);
+  }, [grants, debouncedSearch, statusFilter, typeFilter]);
 
   const loadGrants = async () => {
     try {
@@ -53,11 +60,11 @@ export default function Grants() {
   const filterGrants = () => {
     let filtered = grants;
 
-    if (searchTerm) {
+    if (debouncedSearch) {
       filtered = filtered.filter(g =>
-        g.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        g.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        g.source?.toLowerCase().includes(searchTerm.toLowerCase())
+        g.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        g.description?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        g.source?.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -116,17 +123,24 @@ export default function Grants() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this grant/opportunity?')) {
-      try {
-        await api.delete(`/grants/${id}`);
-        showToast('success', 'Grant deleted successfully');
-        loadGrants();
-      } catch (error) {
-        const message = error instanceof ApiError ? error.message : 'Failed to delete grant';
-        showToast('error', message);
-      }
-    }
+  const handleDelete = (id: string, title: string) => {
+    confirm({
+      title: 'Delete Grant',
+      message: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      variant: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/grants/${id}`);
+          showToast('success', 'Grant deleted successfully');
+          loadGrants();
+        } catch (error) {
+          const message = error instanceof ApiError ? error.message : 'Failed to delete grant';
+          showToast('error', message);
+        }
+      },
+    });
   };
 
   const resetForm = () => {
@@ -355,12 +369,14 @@ export default function Grants() {
                       <button
                         onClick={() => handleEdit(grant)}
                         className="text-primary-600 hover:text-primary-800"
+                        aria-label="Edit grant"
                       >
                         <Edit size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(grant.id)}
+                        onClick={() => handleDelete(grant.id, grant.title)}
                         className="text-red-600 hover:text-red-800"
+                        aria-label="Delete grant"
                       >
                         <Trash2 size={18} />
                       </button>
