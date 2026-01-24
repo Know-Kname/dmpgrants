@@ -1,0 +1,46 @@
+{
+  "name": "@yourname/app-boilerplate-generator",
+  "version": "1.0.0",
+  "description": "Production-ready app generator for frontend, backend, and full-stack applications",
+  "type": "module",
+  "bin": {
+    "create-app": "./cli.js",
+    "create-frontend": "./generators/generate-frontend.js",
+    "create-backend": "./generators/generate-backend.js",
+    "create-fullstack": "./generators/generate-fullstack.js"
+  },
+  "scripts": {
+    "generate": "node cli.js",
+    "generate:frontend": "node generators/generate-frontend.js",
+    "generate:backend": "node generators/generate-backend.js",
+    "generate:fullstack": "node generators/generate-fullstack.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "generator",
+    "boilerplate",
+    "react",
+    "typescript",
+    "express",
+    "fullstack",
+    "cli",
+    "scaffold",
+    "template"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/app-boilerplate-generator"
+  },
+  "files": [
+    "generators/",
+    "templates/",
+    "docs/",
+    "cli.js",
+    "README.md"
+  ]
+}
