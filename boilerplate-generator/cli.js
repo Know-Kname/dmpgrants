@@ -8,7 +8,11 @@
 import { generateFrontend } from './generators/generate-frontend.js';
 import { generateBackend } from './generators/generate-backend.js';
 import { generateFullStack } from './generators/generate-fullstack.js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import readline from 'readline';
+
+const execAsync = promisify(exec);
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -36,10 +40,11 @@ async function main() {
   console.log(`  1. 📱 Frontend (React + TypeScript + Tailwind)`);
   console.log(`  2. ⚙️  Backend (Express + Security + Database)`);
   console.log(`  3. 🎯 Full-Stack (Frontend + Backend + Database)`);
-  console.log(`  4. 📚 View Documentation`);
-  console.log(`  5. 🚪 Exit\n`);
+  console.log(`  4. 🧪 Testing Setup (Vitest + React Testing Library)`);
+  console.log(`  5. 📚 View Documentation`);
+  console.log(`  6. 🚪 Exit\n`);
 
-  const choice = await question('Enter your choice (1-5): ');
+  const choice = await question('Enter your choice (1-6): ');
 
   switch (choice.trim()) {
     case '1':
@@ -52,9 +57,12 @@ async function main() {
       await generateFullStackInteractive();
       break;
     case '4':
-      showDocumentation();
+      await generateTestingInteractive();
       break;
     case '5':
+      showDocumentation();
+      break;
+    case '6':
       console.log('\n👋 Goodbye!\n');
       process.exit(0);
       break;
@@ -151,6 +159,46 @@ async function generateFullStackInteractive() {
 
   if (confirm.toLowerCase() === 'y') {
     generateFullStack(projectName.trim());
+  } else {
+    console.log('\n❌ Generation cancelled.\n');
+  }
+}
+
+async function generateTestingInteractive() {
+  console.log(`\n${'─'.repeat(60)}`);
+  console.log(`🧪 TESTING INFRASTRUCTURE GENERATOR`);
+  console.log(`${'─'.repeat(60)}\n`);
+
+  const targetDir = await question('Target directory (press Enter for current): ');
+  const dir = targetDir.trim() || '.';
+
+  console.log(`\n📦 This will generate:`);
+  console.log(`   ✓ Vitest configuration`);
+  console.log(`   ✓ React Testing Library setup`);
+  console.log(`   ✓ Test utilities and helpers`);
+  console.log(`   ✓ Example tests`);
+  console.log(`   ✓ Testing documentation`);
+  console.log(`   ✓ NPM scripts (test, test:ui, test:coverage)\n`);
+
+  const confirm = await question('Generate testing setup? (y/n): ');
+
+  if (confirm.toLowerCase() === 'y') {
+    console.log(`\n⚙️  Generating testing infrastructure...\n`);
+
+    try {
+      const { stdout, stderr } = await execAsync(`node ./generators/generate-testing.js "${dir}"`);
+      if (stdout) console.log(stdout);
+      if (stderr) console.error(stderr);
+
+      console.log(`\n✅ Testing infrastructure generated!`);
+      console.log(`\n📚 Next steps:`);
+      console.log(`   1. cd ${dir !== '.' ? dir : 'your-project'}`);
+      console.log(`   2. npm install`);
+      console.log(`   3. npm test`);
+      console.log(`   4. Read TESTING.md for usage guide\n`);
+    } catch (error) {
+      console.error(`\n❌ Error generating testing setup:`, error.message);
+    }
   } else {
     console.log('\n❌ Generation cancelled.\n');
   }
