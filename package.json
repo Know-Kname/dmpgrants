@@ -8,11 +8,15 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
-    "db:migrate": "node server/db/migrate.js"
+    "db:migrate": "node server/db/migrate.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "date-fns": "^3.0.0",
     "dotenv": "^16.3.1",
@@ -23,25 +27,37 @@
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.300.0",
+    "morgan": "^1.10.0",
     "pg": "^8.11.3",
     "rate-limit": "^0.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
-    "recharts": "^2.10.0"
+    "recharts": "^2.10.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/user-event": "^14.5.1",
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.5",
+    "@types/morgan": "^1.9.9",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@types/supertest": "^6.0.2",
     "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/ui": "^1.0.4",
     "autoprefixer": "^10.4.16",
+    "jsdom": "^23.0.1",
     "postcss": "^8.4.32",
+    "supertest": "^6.3.3",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.3",
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "vitest": "^1.0.4"
   }
 }
