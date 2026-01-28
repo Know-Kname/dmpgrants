@@ -1,5 +1,30 @@
 const API_URL = '/api';
 
+// CSRF token cache
+let csrfToken: string | null = null;
+
+/**
+ * Fetch CSRF token from server
+ * Token is cached after first fetch
+ */
+async function getCsrfToken(): Promise<string> {
+  if (csrfToken) {
+    return csrfToken;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/csrf-token`, {
+      credentials: 'include',
+    });
+    const data = await response.json();
+    csrfToken = data.csrfToken;
+    return csrfToken!;
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error);
+    return '';
+  }
+}
+
 // Custom API Error class
 export class ApiError extends Error {
   constructor(
@@ -19,13 +44,7 @@ export interface ApiResponse<T = any> {
   message?: string;
 }
 
-const getAuthHeader = (): Record<string, string> => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    return { Authorization: `Bearer ${token}` };
-  }
-  return {};
-};
+// Removed getAuthHeader - using httpOnly cookies instead
 
 // Handle API response with error checking
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -46,9 +65,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
     // Handle specific status codes
     if (response.status === 401) {
-      // Clear auth token on unauthorized
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      // Redirect to login on unauthorized (cookie will be cleared by server)
       window.location.href = '/login';
       throw new ApiError(401, 'Session expired. Please login again.');
     }
@@ -88,8 +105,16 @@ async function request<T>(
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...getAuthHeader(),
     };
+
+    // Add CSRF token for state-changing requests
+    const method = (options.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+      const token = await getCsrfToken();
+      if (token) {
+        headers['X-CSRF-Token'] = token;
+      }
+    }
 
     // Merge custom headers if provided
     if (options.headers) {
@@ -102,6 +127,7 @@ async function request<T>(
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include', // Required for sending httpOnly cookies
       signal: controller.signal,
     });
 
