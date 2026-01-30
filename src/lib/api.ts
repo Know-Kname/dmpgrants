@@ -5,6 +5,20 @@ const getAuthHeader = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+const handleResponse = async (res: Response) => {
+  if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `API Error: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+};
+
 export const api = {
   // Auth
   login: async (email: string, password: string) => {
@@ -13,7 +27,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    return res.json();
+    return handleResponse(res);
   },
 
   // Generic CRUD
@@ -21,7 +35,7 @@ export const api = {
     const res = await fetch(`${API_URL}${endpoint}`, {
       headers: getAuthHeader(),
     });
-    return res.json();
+    return handleResponse(res);
   },
 
   post: async (endpoint: string, data: any) => {
@@ -33,7 +47,7 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
-    return res.json();
+    return handleResponse(res);
   },
 
   put: async (endpoint: string, data: any) => {
@@ -45,7 +59,7 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
-    return res.json();
+    return handleResponse(res);
   },
 
   delete: async (endpoint: string) => {
@@ -53,6 +67,6 @@ export const api = {
       method: 'DELETE',
       headers: getAuthHeader(),
     });
-    return res.json();
+    return handleResponse(res);
   },
 };

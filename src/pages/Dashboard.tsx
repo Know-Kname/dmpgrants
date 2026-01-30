@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { Card, CardHeader, CardBody, LoadingSpinner, Badge, Button } from '../components/ui';
+import { Card, CardHeader, CardBody, LoadingSpinner, Badge, Button, EmptyState } from '../components/ui';
 import {
   ClipboardList, Package, DollarSign, Users, AlertCircle,
-  TrendingUp, Calendar, ArrowRight, MoreHorizontal, Activity
+  TrendingUp, Calendar, ArrowRight, MoreHorizontal, Activity,
+  RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
     workOrders: { total: 0, pending: 0, inProgress: 0, completed: 0 },
     inventory: { total: 0, lowStock: 0 },
@@ -24,11 +26,12 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [workOrders, inventory, receivables, burials] = await Promise.all([
-        api.get('/work-orders'),
-        api.get('/inventory'),
-        api.get('/financial/receivables'),
-        api.get('/burials'),
+        api.get('/work-orders').catch(() => []),
+        api.get('/inventory').catch(() => []),
+        api.get('/financial/receivables').catch(() => []),
+        api.get('/burials').catch(() => []),
       ]);
 
       // Calculate work order stats
@@ -86,6 +89,7 @@ export default function Dashboard() {
       setRecentActivity(activities);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
+      setError('Failed to load dashboard data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -97,6 +101,21 @@ export default function Dashboard() {
         <LoadingSpinner size="lg" />
         <p className="text-secondary-500 animate-pulse">Loading dashboard...</p>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <EmptyState
+        icon={<AlertCircle size={32} />}
+        title="Something went wrong"
+        description={error}
+        action={
+          <Button onClick={loadDashboardData} icon={<RefreshCw size={18} />}>
+            Retry
+          </Button>
+        }
+      />
     );
   }
 
@@ -235,7 +254,7 @@ export default function Dashboard() {
               <div className="w-full bg-secondary-100 rounded-full h-2">
                 <div 
                   className="bg-yellow-400 h-2 rounded-full transition-all duration-1000" 
-                  style={{ width: `${(stats.workOrders.pending / stats.workOrders.total) * 100}%` }}
+                  style={{ width: `${stats.workOrders.total ? (stats.workOrders.pending / stats.workOrders.total) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -248,7 +267,7 @@ export default function Dashboard() {
               <div className="w-full bg-secondary-100 rounded-full h-2">
                 <div 
                   className="bg-blue-500 h-2 rounded-full transition-all duration-1000 delay-100" 
-                  style={{ width: `${(stats.workOrders.inProgress / stats.workOrders.total) * 100}%` }}
+                  style={{ width: `${stats.workOrders.total ? (stats.workOrders.inProgress / stats.workOrders.total) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -261,7 +280,7 @@ export default function Dashboard() {
               <div className="w-full bg-secondary-100 rounded-full h-2">
                 <div 
                   className="bg-green-500 h-2 rounded-full transition-all duration-1000 delay-200" 
-                  style={{ width: `${(stats.workOrders.completed / stats.workOrders.total) * 100}%` }}
+                  style={{ width: `${stats.workOrders.total ? (stats.workOrders.completed / stats.workOrders.total) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -285,44 +304,50 @@ export default function Dashboard() {
             <Badge variant="gray" size="sm">Last 5 items</Badge>
           </CardHeader>
           <CardBody>
-            <div className="space-y-6">
-              {recentActivity.map((activity, idx) => (
-                <div key={idx} className="flex items-start space-x-4 group">
-                  <div className={`
-                    p-2.5 rounded-xl shrink-0 transition-colors duration-200
-                    ${activity.type === 'work_order' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' : 'bg-purple-50 text-purple-600 group-hover:bg-purple-100'}
-                  `}>
-                    {activity.type === 'work_order' ? (
-                      <ClipboardList size={20} />
-                    ) : (
-                      <Users size={20} />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-semibold text-secondary-900 truncate">{activity.title}</p>
-                      <span className="text-xs text-secondary-400 whitespace-nowrap">
-                        {format(new Date(activity.date), 'MMM d, h:mm a')}
-                      </span>
+            {recentActivity.length === 0 ? (
+              <div className="text-center py-8 text-secondary-500">
+                No recent activity found.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {recentActivity.map((activity, idx) => (
+                  <div key={idx} className="flex items-start space-x-4 group">
+                    <div className={`
+                      p-2.5 rounded-xl shrink-0 transition-colors duration-200
+                      ${activity.type === 'work_order' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100' : 'bg-purple-50 text-purple-600 group-hover:bg-purple-100'}
+                    `}>
+                      {activity.type === 'work_order' ? (
+                        <ClipboardList size={20} />
+                      ) : (
+                        <Users size={20} />
+                      )}
                     </div>
-                    <p className="text-sm text-secondary-500 line-clamp-1">{activity.details}</p>
-                    {activity.status && (
-                      <div className="mt-2">
-                        <Badge 
-                          variant={
-                            activity.status === 'completed' ? 'success' :
-                            activity.status === 'in_progress' ? 'info' : 'warning'
-                          }
-                          size="sm"
-                        >
-                          {activity.status.replace('_', ' ')}
-                        </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-semibold text-secondary-900 truncate">{activity.title}</p>
+                        <span className="text-xs text-secondary-400 whitespace-nowrap">
+                          {format(new Date(activity.date), 'MMM d, h:mm a')}
+                        </span>
                       </div>
-                    )}
+                      <p className="text-sm text-secondary-500 line-clamp-1">{activity.details}</p>
+                      {activity.status && (
+                        <div className="mt-2">
+                          <Badge 
+                            variant={
+                              activity.status === 'completed' ? 'success' :
+                              activity.status === 'in_progress' ? 'info' : 'warning'
+                            }
+                            size="sm"
+                          >
+                            {activity.status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardBody>
         </Card>
       </div>

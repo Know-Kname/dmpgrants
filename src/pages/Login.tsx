@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { Button, Input } from '../components/ui';
-import { Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -21,7 +21,7 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      setError(err instanceof Error ? err.message : 'Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -43,6 +43,13 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm flex items-start gap-2 animate-slide-up">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
             <div className="space-y-4">
               <Input
                 label="Email address"
@@ -51,8 +58,9 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 icon={<Mail size={18} />}
-                error={error ? ' ' : undefined}
+                disabled={isLoading}
               />
               
               <div className="space-y-1">
@@ -63,11 +71,12 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                   icon={<Lock size={18} />}
-                  error={error}
+                  disabled={isLoading}
                 />
                 <div className="flex justify-end">
-                  <a href="#" className="text-sm font-medium text-primary-600 hover:text-primary-700">
+                  <a href="#" className="text-sm font-medium text-primary-600 hover:text-primary-700 focus:outline-none focus:underline">
                     Forgot password?
                   </a>
                 </div>
@@ -90,7 +99,7 @@ export default function Login() {
               <p className="text-xs font-medium text-secondary-500 uppercase tracking-wider mb-2">Demo Credentials</p>
               <div className="flex items-center justify-between text-sm text-secondary-700">
                 <span>admin@dmp.com</span>
-                <span className="font-mono bg-white px-2 py-0.5 rounded border border-secondary-200">admin123</span>
+                <span className="font-mono bg-white px-2 py-0.5 rounded border border-secondary-200 select-all">admin123</span>
               </div>
             </div>
           </div>

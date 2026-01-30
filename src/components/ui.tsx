@@ -1,5 +1,10 @@
 import React from 'react';
 
+// Helper to merge class names
+const cn = (...classes: (string | undefined | null | false)[]) => {
+  return classes.filter(Boolean).join(' ');
+};
+
 // Button Component
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'ghost' | 'outline';
@@ -34,7 +39,7 @@ export function Button({
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={cn(baseStyles, variants[variant], sizes[size], className)}
       {...props}
     >
       {icon && <span className="mr-2">{icon}</span>}
@@ -52,18 +57,22 @@ interface CardProps {
 
 export function Card({ children, className = '', hoverable = false }: CardProps) {
   return (
-    <div className={`bg-white rounded-xl shadow-soft border border-secondary-100 ${hoverable ? 'hover:shadow-lg hover:-translate-y-1 transition-all duration-300' : ''} ${className}`}>
+    <div className={cn(
+      'bg-white rounded-xl shadow-soft border border-secondary-100',
+      hoverable ? 'hover:shadow-lg hover:-translate-y-1 transition-all duration-300' : '',
+      className
+    )}>
       {children}
     </div>
   );
 }
 
 export function CardHeader({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-6 py-4 border-b border-secondary-100 ${className}`}>{children}</div>;
+  return <div className={cn('px-6 py-4 border-b border-secondary-100', className)}>{children}</div>;
 }
 
 export function CardBody({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-6 py-4 ${className}`}>{children}</div>;
+  return <div className={cn('px-6 py-4', className)}>{children}</div>;
 }
 
 // Badge Component
@@ -71,9 +80,10 @@ interface BadgeProps {
   children: React.ReactNode;
   variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'gray';
   size?: 'sm' | 'md';
+  className?: string;
 }
 
-export function Badge({ children, variant = 'primary', size = 'md' }: BadgeProps) {
+export function Badge({ children, variant = 'primary', size = 'md', className = '' }: BadgeProps) {
   const variants = {
     primary: 'bg-primary-50 text-primary-700 border border-primary-100',
     success: 'bg-green-50 text-green-700 border border-green-100',
@@ -89,7 +99,7 @@ export function Badge({ children, variant = 'primary', size = 'md' }: BadgeProps
   };
 
   return (
-    <span className={`inline-flex items-center font-medium rounded-full ${variants[variant]} ${sizes[size]}`}>
+    <span className={cn('inline-flex items-center font-medium rounded-full', variants[variant], sizes[size], className)}>
       {children}
     </span>
   );
@@ -118,7 +128,7 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
       <div className="fixed inset-0 bg-secondary-900/50 backdrop-blur-sm transition-opacity" onClick={onClose} />
-      <div className={`relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] flex flex-col animate-slide-up`}>
+      <div className={cn('relative bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] flex flex-col animate-slide-up', sizes[size])}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-secondary-100">
           <h2 className="text-xl font-bold text-secondary-900">{title}</h2>
           <button onClick={onClose} className="text-secondary-400 hover:text-secondary-600 transition-colors p-1 rounded-lg hover:bg-secondary-50">
@@ -154,7 +164,12 @@ export function Input({ label, error, icon, className = '', ...props }: InputPro
       <div className="relative group">
         {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400 group-focus-within:text-primary-500 transition-colors">{icon}</div>}
         <input
-          className={`w-full px-4 py-2.5 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all duration-200 bg-white placeholder:text-secondary-400 ${icon ? 'pl-10' : ''} ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''} ${className}`}
+          className={cn(
+            'w-full px-4 py-2.5 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all duration-200 bg-white placeholder:text-secondary-400',
+            icon ? 'pl-10' : '',
+            error ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : '',
+            className
+          )}
           {...props}
         />
       </div>
@@ -179,7 +194,11 @@ export function Select({ label, error, options, className = '', ...props }: Sele
       {label && <label className="block text-sm font-medium text-secondary-700 mb-1.5">{label}</label>}
       <div className="relative">
         <select
-          className={`w-full px-4 py-2.5 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all duration-200 bg-white appearance-none ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''} ${className}`}
+          className={cn(
+            'w-full px-4 py-2.5 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all duration-200 bg-white appearance-none',
+            error ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : '',
+            className
+          )}
           {...props}
         >
           {options.map(opt => (
@@ -208,7 +227,11 @@ export function Textarea({ label, error, className = '', ...props }: TextareaPro
     <div className="w-full">
       {label && <label className="block text-sm font-medium text-secondary-700 mb-1.5">{label}</label>}
       <textarea
-        className={`w-full px-4 py-2.5 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all duration-200 resize-none placeholder:text-secondary-400 ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''} ${className}`}
+        className={cn(
+          'w-full px-4 py-2.5 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all duration-200 resize-none placeholder:text-secondary-400',
+          error ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : '',
+          className
+        )}
         rows={4}
         {...props}
       />
@@ -248,7 +271,7 @@ export function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
 
   return (
     <div className="flex items-center justify-center">
-      <div className={`${sizes[size]} border-4 border-secondary-200 border-t-primary-600 rounded-full animate-spin`} />
+      <div className={cn('border-4 border-secondary-200 border-t-primary-600 rounded-full animate-spin', sizes[size])} />
     </div>
   );
 }
