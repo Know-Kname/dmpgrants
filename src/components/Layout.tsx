@@ -2,13 +2,16 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import {
   Home, FileText, Package, DollarSign, Users,
-  FileSignature, Gift, ClipboardList, LogOut, User
+  FileSignature, Gift, ClipboardList, LogOut, User,
+  ChevronRight, Menu, X
 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -34,80 +37,123 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="px-6">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">DMP</span>
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">Detroit Memorial Park</h1>
-                <p className="text-xs text-gray-500">Cemetery Management System</p>
-              </div>
+    <div className="min-h-screen bg-secondary-50 flex">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-secondary-900/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside 
+        className={`
+          fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-secondary-200 
+          transform transition-transform duration-300 ease-in-out lg:transform-none flex flex-col
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        {/* Logo Area */}
+        <div className="h-20 flex items-center px-6 border-b border-secondary-100 bg-white/50 backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-xl shadow-lg shadow-primary-500/20 flex items-center justify-center transform transition-transform hover:scale-105">
+              <span className="text-white font-bold text-lg tracking-wider">DMP</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 px-3 py-2 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                  <User size={16} className="text-primary-700" />
-                </div>
-                <div className="text-sm">
-                  <div className="font-medium text-gray-900">{user?.name}</div>
-                  <div className="text-xs text-gray-500 capitalize">{user?.role}</div>
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+            <div>
+              <h1 className="text-lg font-bold text-secondary-900 leading-tight">Detroit Memorial</h1>
+              <p className="text-xs text-secondary-500 font-medium tracking-wide">MANAGEMENT SYSTEM</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="ml-auto lg:hidden text-secondary-400 hover:text-secondary-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
+          <div className="text-xs font-semibold text-secondary-400 uppercase tracking-wider mb-4 px-4">
+            Main Menu
+          </div>
+          {navItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
+                  ${active 
+                    ? 'bg-primary-50 text-primary-700 shadow-sm' 
+                    : 'text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900'
+                  }
+                `}
               >
-                <LogOut size={18} />
-                <span className="text-sm font-medium">Logout</span>
-              </button>
+                <item.icon 
+                  size={20} 
+                  className={`transition-colors duration-200 ${active ? 'text-primary-600' : 'text-secondary-400 group-hover:text-secondary-600'}`} 
+                />
+                <span className="font-medium">{item.label}</span>
+                {active && (
+                  <ChevronRight size={16} className="ml-auto text-primary-400" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User Profile */}
+        <div className="p-4 border-t border-secondary-100 bg-secondary-50/30">
+          <div className="flex items-center space-x-3 p-2 rounded-xl bg-white border border-secondary-100 shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+              <User size={20} className="text-secondary-600" />
             </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-sm text-secondary-900 truncate">{user?.name}</div>
+              <div className="text-xs text-secondary-500 capitalize truncate">{user?.role}</div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+          <div className="mt-4 flex justify-between items-center px-2 text-xs text-secondary-400">
+            <span>v1.0.0</span>
+            <span>© 2025 DMP</span>
           </div>
         </div>
-      </nav>
+      </aside>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] sticky top-16">
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
-              const active = isActive(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
-                    active
-                      ? 'bg-primary-50 text-primary-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <item.icon size={20} className={active ? 'text-primary-600' : ''} />
-                  <span>{item.label}</span>
-                  {active && (
-                    <div className="ml-auto w-1.5 h-1.5 bg-primary-600 rounded-full" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Footer */}
-          <div className="absolute bottom-4 left-4 right-4 p-4 bg-gray-50 rounded-lg">
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>Version 1.0.0</div>
-              <div>© 2025 DMP Cemetery</div>
-            </div>
+      {/* Main Content Wrapper */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Mobile Header */}
+        <header className="lg:hidden h-16 bg-white border-b border-secondary-200 flex items-center justify-between px-4 sticky top-0 z-30">
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 -ml-2 text-secondary-600 hover:bg-secondary-50 rounded-lg"
+            >
+              <Menu size={24} />
+            </button>
+            <span className="font-bold text-secondary-900">DMP System</span>
           </div>
-        </aside>
+          <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold text-sm">
+            {user?.name?.[0]}
+          </div>
+        </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-8 max-w-7xl">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-secondary-50 p-4 lg:p-8 scroll-smooth">
+          <div className="max-w-7xl mx-auto animate-fade-in">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
