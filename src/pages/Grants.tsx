@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { Grant } from '../types';
-import { Card, CardBody, CardHeader, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
-import { Plus, Search, DollarSign, Calendar, ExternalLink, Gift, Edit, Trash2 } from 'lucide-react';
+import { Card, CardBody, CardHeader, Button, Modal, Input, Select, Textarea, Badge, EmptyState, LoadingSpinner } from '../components/ui';
+import { Plus, Search, DollarSign, Calendar, ExternalLink, Gift, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Grants() {
@@ -13,6 +12,8 @@ export default function Grants() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -34,8 +35,17 @@ export default function Grants() {
   }, [grants, searchTerm, statusFilter, typeFilter]);
 
   const loadGrants = async () => {
-    const data = await api.get('/grants');
-    setGrants(data);
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.get('/grants');
+      setGrants(data);
+    } catch (err) {
+      console.error('Failed to load grants:', err);
+      setError('Unable to load grants. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterGrants = () => {
@@ -79,6 +89,7 @@ export default function Grants() {
       loadGrants();
     } catch (error) {
       console.error('Failed to save grant:', error);
+      setError('Unable to save the grant. Please try again.');
     }
   };
 
@@ -100,8 +111,13 @@ export default function Grants() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this grant/opportunity?')) {
-      await api.delete(`/grants/${id}`);
-      loadGrants();
+      try {
+        await api.delete(`/grants/${id}`);
+        loadGrants();
+      } catch (err) {
+        console.error('Failed to delete grant:', err);
+        setError('Unable to delete the grant. Please try again.');
+      }
     }
   };
 
@@ -254,7 +270,30 @@ export default function Grants() {
       </Card>
 
       {/* Grants List */}
-      {filteredGrants.length === 0 ? (
+      {error && (
+        <Card className="border-l-4 border-l-red-500">
+          <CardBody className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="text-red-500 mt-0.5" size={20} />
+              <div>
+                <h3 className="font-semibold text-gray-900">Grants Unavailable</h3>
+                <p className="text-sm text-gray-600">{error}</p>
+              </div>
+            </div>
+            <Button variant="secondary" onClick={loadGrants}>
+              Retry
+            </Button>
+          </CardBody>
+        </Card>
+      )}
+
+      {loading ? (
+        <Card>
+          <CardBody className="py-12">
+            <LoadingSpinner size="lg" />
+          </CardBody>
+        </Card>
+      ) : filteredGrants.length === 0 ? (
         <Card>
           <CardBody>
             <EmptyState
@@ -322,12 +361,14 @@ export default function Grants() {
                       <button
                         onClick={() => handleEdit(grant)}
                         className="text-primary-600 hover:text-primary-800"
+                        aria-label={`Edit grant ${grant.title}`}
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(grant.id)}
                         className="text-red-600 hover:text-red-800"
+                        aria-label={`Delete grant ${grant.title}`}
                       >
                         <Trash2 size={18} />
                       </button>

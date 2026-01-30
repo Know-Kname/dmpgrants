@@ -1,64 +1,84 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { Button, Card, CardBody, Input } from '../components/ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setIsSubmitting(true);
+      setError('');
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError('Invalid credentials');
+      setError(err instanceof Error ? err.message : 'Invalid credentials');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-primary-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h1 className="text-2xl font-bold mb-6 text-center">Detroit Memorial Park</h1>
-        <h2 className="text-lg mb-6 text-center text-gray-600">Cemetery Management System</h2>
-
-        {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-              required
-            />
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-2">
+          <div className="mx-auto w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-800 rounded-xl flex items-center justify-center">
+            <span className="text-white font-bold text-lg">DMP</span>
           </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-              required
-            />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Detroit Memorial Park</h1>
+            <p className="text-sm text-gray-500">Cemetery Management System</p>
           </div>
-          <button
-            type="submit"
-            className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition"
-          >
-            Login
-          </button>
-        </form>
-
-        <div className="mt-4 text-sm text-gray-500 text-center">
-          Default: admin@dmp.com / admin123
         </div>
+
+        <Card className="shadow-xl border border-white/60">
+          <CardBody className="space-y-5">
+            {error && (
+              <div className="flex items-start space-x-2 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <AlertCircle size={18} className="mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                label="Email"
+                type="email"
+                icon={<Mail size={18} />}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                placeholder="you@dmp.com"
+                required
+              />
+              <Input
+                label="Password"
+                type="password"
+                icon={<Lock size={18} />}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                required
+              />
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Signing in...' : 'Sign in'}
+              </Button>
+            </form>
+          </CardBody>
+        </Card>
+
+        <p className="text-center text-xs text-gray-500">
+          Need access? Contact your administrator for credentials.
+        </p>
       </div>
     </div>
   );

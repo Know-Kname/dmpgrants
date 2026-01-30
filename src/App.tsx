@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Clock } from 'lucide-react';
 import { AuthProvider, useAuth } from './lib/auth';
 import Layout from './components/Layout';
+import { Card, CardBody, EmptyState } from './components/ui';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import WorkOrders from './pages/WorkOrders';
@@ -9,6 +11,20 @@ import Grants from './pages/Grants';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function ComingSoon({ title, description }: { title: string; description: string }) {
+  return (
+    <Card>
+      <CardBody>
+        <EmptyState
+          icon={<Clock size={48} />}
+          title={`${title} is coming soon`}
+          description={description}
+        />
+      </CardBody>
+    </Card>
+  );
 }
 
 function AppRoutes() {
@@ -25,12 +41,27 @@ function AppRoutes() {
       >
         <Route index element={<Dashboard />} />
         <Route path="work-orders" element={<WorkOrders />} />
-        <Route path="inventory" element={<div className="text-2xl">Inventory (Coming Soon)</div>} />
-        <Route path="financial" element={<div className="text-2xl">Financial (Coming Soon)</div>} />
-        <Route path="burials" element={<div className="text-2xl">Burials (Coming Soon)</div>} />
-        <Route path="contracts" element={<div className="text-2xl">Contracts (Coming Soon)</div>} />
+        <Route
+          path="inventory"
+          element={<ComingSoon title="Inventory" description="Track stock levels, reorder points, and vendors." />}
+        />
+        <Route
+          path="financial"
+          element={<ComingSoon title="Financial" description="Review receivables, payables, and deposits in one place." />}
+        />
+        <Route
+          path="burials"
+          element={<ComingSoon title="Burials" description="Manage burial records, locations, and permits." />}
+        />
+        <Route
+          path="contracts"
+          element={<ComingSoon title="Contracts" description="Create and manage pre-need or at-need contracts." />}
+        />
         <Route path="grants" element={<Grants />} />
-        <Route path="customers" element={<div className="text-2xl">Customers (Coming Soon)</div>} />
+        <Route
+          path="customers"
+          element={<ComingSoon title="Customers" description="Maintain contacts, families, and communication history." />}
+        />
       </Route>
     </Routes>
   );

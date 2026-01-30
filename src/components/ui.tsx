@@ -1,3 +1,5 @@
+import { useEffect, useId } from 'react';
+
 // Button Component
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'ghost';
@@ -103,8 +105,6 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
-  if (!isOpen) return null;
-
   const sizes = {
     sm: 'max-w-md',
     md: 'max-w-2xl',
@@ -112,13 +112,36 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
     xl: 'max-w-6xl',
   };
 
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
-      <div className={`relative bg-white rounded-xl shadow-xl ${sizes[size]} w-full mx-4 max-h-[90vh] flex flex-col`}>
+      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} aria-hidden="true" />
+      <div
+        className={`relative bg-white rounded-xl shadow-xl ${sizes[size]} w-full mx-4 max-h-[90vh] flex flex-col`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <h2 className="text-xl font-bold" id={titleId}>{title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="Close modal">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -145,17 +168,24 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export function Input({ label, error, icon, className = '', ...props }: InputProps) {
+  const autoId = useId();
+  const inputId = props.id ?? autoId;
+  const errorId = error ? `${inputId}-error` : undefined;
+
   return (
     <div className="w-full">
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {label && <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <div className="relative">
         {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>}
         <input
+          id={inputId}
+          aria-invalid={!!error}
+          aria-describedby={errorId}
           className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition ${icon ? 'pl-10' : ''} ${error ? 'border-red-500' : ''} ${className}`}
           {...props}
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600" id={errorId}>{error}</p>}
     </div>
   );
 }
@@ -168,10 +198,17 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export function Select({ label, error, options, className = '', ...props }: SelectProps) {
+  const autoId = useId();
+  const selectId = props.id ?? autoId;
+  const errorId = error ? `${selectId}-error` : undefined;
+
   return (
     <div className="w-full">
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {label && <label htmlFor={selectId} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <select
+        id={selectId}
+        aria-invalid={!!error}
+        aria-describedby={errorId}
         className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition ${error ? 'border-red-500' : ''} ${className}`}
         {...props}
       >
@@ -179,7 +216,7 @@ export function Select({ label, error, options, className = '', ...props }: Sele
           <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
       </select>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600" id={errorId}>{error}</p>}
     </div>
   );
 }
@@ -191,15 +228,22 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 }
 
 export function Textarea({ label, error, className = '', ...props }: TextareaProps) {
+  const autoId = useId();
+  const textareaId = props.id ?? autoId;
+  const errorId = error ? `${textareaId}-error` : undefined;
+
   return (
     <div className="w-full">
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {label && <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <textarea
+        id={textareaId}
+        aria-invalid={!!error}
+        aria-describedby={errorId}
         className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition resize-none ${error ? 'border-red-500' : ''} ${className}`}
         rows={4}
         {...props}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600" id={errorId}>{error}</p>}
     </div>
   );
 }
@@ -234,7 +278,7 @@ export function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading">
       <div className={`${sizes[size]} border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin`} />
     </div>
   );

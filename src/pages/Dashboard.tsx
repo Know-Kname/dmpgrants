@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { Card, CardHeader, CardBody, LoadingSpinner } from '../components/ui';
+import { Card, CardHeader, CardBody, LoadingSpinner, Button } from '../components/ui';
 import {
   ClipboardList, Package, DollarSign, Users, AlertCircle,
   TrendingUp, Calendar, CheckCircle2, Clock
@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
     workOrders: { total: 0, pending: 0, inProgress: 0, completed: 0 },
     inventory: { total: 0, lowStock: 0 },
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [workOrders, inventory, receivables, burials] = await Promise.all([
         api.get('/work-orders'),
         api.get('/inventory'),
@@ -84,6 +86,7 @@ export default function Dashboard() {
       setRecentActivity(activities);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
+      setError('Unable to load dashboard data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -143,6 +146,23 @@ export default function Dashboard() {
           {format(new Date(), 'EEEE, MMMM d, yyyy')}
         </div>
       </div>
+
+      {error && (
+        <Card className="border-l-4 border-l-red-500">
+          <CardBody className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="text-red-500 mt-0.5" size={20} />
+              <div>
+                <h3 className="font-semibold text-gray-900">Dashboard Unavailable</h3>
+                <p className="text-sm text-gray-600">{error}</p>
+              </div>
+            </div>
+            <Button variant="secondary" onClick={loadDashboardData}>
+              Retry
+            </Button>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Alerts */}
       {(stats.inventory.lowStock > 0 || stats.receivables.overdue > 0) && (

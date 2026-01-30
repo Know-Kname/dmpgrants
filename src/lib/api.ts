@@ -5,6 +5,19 @@ const getAuthHeader = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+const parseResponse = async (res: Response) => {
+  const contentType = res.headers.get('content-type');
+  const isJson = contentType && contentType.includes('application/json');
+  const data = isJson ? await res.json() : null;
+
+  if (!res.ok) {
+    const message = data?.error || data?.message || 'Request failed';
+    throw new Error(message);
+  }
+
+  return data;
+};
+
 export const api = {
   // Auth
   login: async (email: string, password: string) => {
@@ -13,7 +26,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    return res.json();
+    return parseResponse(res);
   },
 
   // Generic CRUD
@@ -21,7 +34,7 @@ export const api = {
     const res = await fetch(`${API_URL}${endpoint}`, {
       headers: getAuthHeader(),
     });
-    return res.json();
+    return parseResponse(res);
   },
 
   post: async (endpoint: string, data: any) => {
@@ -33,7 +46,7 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
-    return res.json();
+    return parseResponse(res);
   },
 
   put: async (endpoint: string, data: any) => {
@@ -45,7 +58,7 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
-    return res.json();
+    return parseResponse(res);
   },
 
   delete: async (endpoint: string) => {
@@ -53,6 +66,6 @@ export const api = {
       method: 'DELETE',
       headers: getAuthHeader(),
     });
-    return res.json();
+    return parseResponse(res);
   },
 };

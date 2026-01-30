@@ -72,7 +72,7 @@ export default function Layout() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] sticky top-16">
+        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] sticky top-16 relative">
           <nav className="p-4 space-y-1">
             {navItems.map((item) => {
               const active = isActive(item.path);
@@ -80,6 +80,7 @@ export default function Layout() {
                 <Link
                   key={item.path}
                   to={item.path}
+                  aria-current={active ? 'page' : undefined}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
                     active
                       ? 'bg-primary-50 text-primary-700 font-medium'
@@ -106,7 +107,7 @@ export default function Layout() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8 max-w-7xl">
+        <main className="flex-1 p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>

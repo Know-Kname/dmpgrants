@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { WorkOrder } from '../types';
-import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
-import { Plus, Search, Filter, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
+import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState, LoadingSpinner } from '../components/ui';
+import { Plus, Search, Edit, Trash2, ClipboardList, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function WorkOrders() {
@@ -12,11 +11,14 @@ export default function WorkOrders() {
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     type: 'maintenance',
     priority: 'medium',
+    status: 'pending',
     assignedTo: '',
     dueDate: '',
   });
@@ -30,8 +32,17 @@ export default function WorkOrders() {
   }, [workOrders, searchTerm, statusFilter]);
 
   const loadWorkOrders = async () => {
-    const data = await api.get('/work-orders');
-    setWorkOrders(data);
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.get('/work-orders');
+      setWorkOrders(data);
+    } catch (err) {
+      console.error('Failed to load work orders:', err);
+      setError('Unable to load work orders. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterOrders = () => {
@@ -65,6 +76,7 @@ export default function WorkOrders() {
       loadWorkOrders();
     } catch (error) {
       console.error('Failed to save work order:', error);
+      setError('Unable to save the work order. Please try again.');
     }
   };
 
@@ -75,6 +87,7 @@ export default function WorkOrders() {
       description: order.description || '',
       type: order.type,
       priority: order.priority,
+      status: order.status,
       assignedTo: order.assigned_to || '',
       dueDate: order.due_date ? format(new Date(order.due_date), 'yyyy-MM-dd') : '',
     });
@@ -83,8 +96,13 @@ export default function WorkOrders() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this work order?')) {
-      await api.delete(`/work-orders/${id}`);
-      loadWorkOrders();
+      try {
+        await api.delete(`/work-orders/${id}`);
+        loadWorkOrders();
+      } catch (err) {
+        console.error('Failed to delete work order:', err);
+        setError('Unable to delete the work order. Please try again.');
+      }
     }
   };
 
@@ -94,6 +112,7 @@ export default function WorkOrders() {
       description: '',
       type: 'maintenance',
       priority: 'medium',
+      status: 'pending',
       assignedTo: '',
       dueDate: '',
     });
@@ -172,8 +191,31 @@ export default function WorkOrders() {
         </CardBody>
       </Card>
 
+      {error && (
+        <Card className="border-l-4 border-l-red-500">
+          <CardBody className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="text-red-500 mt-0.5" size={20} />
+              <div>
+                <h3 className="font-semibold text-gray-900">Work Orders Unavailable</h3>
+                <p className="text-sm text-gray-600">{error}</p>
+              </div>
+            </div>
+            <Button variant="secondary" onClick={loadWorkOrders}>
+              Retry
+            </Button>
+          </CardBody>
+        </Card>
+      )}
+
       {/* Work Orders List */}
-      {filteredOrders.length === 0 ? (
+      {loading ? (
+        <Card>
+          <CardBody className="py-12">
+            <LoadingSpinner size="lg" />
+          </CardBody>
+        </Card>
+      ) : filteredOrders.length === 0 ? (
         <Card>
           <CardBody>
             <EmptyState
@@ -183,7 +225,15 @@ export default function WorkOrders() {
                 ? "Try adjusting your filters"
                 : "Create your first work order to get started"}
               action={
-                <Button variant="primary" icon={<Plus size={20} />} onClick={() => setShowModal(true)}>
+                <Button
+                  variant="primary"
+                  icon={<Plus size={20} />}
+                  onClick={() => {
+                    resetForm();
+                    setEditingOrder(null);
+                    setShowModal(true);
+                  }}
+                >
                   Create Work Order
                 </Button>
               }
@@ -192,29 +242,29 @@ export default function WorkOrders() {
         </Card>
       ) : (
         <Card>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto table-container">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Work Order
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Priority
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Assigned To
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Due Date
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -256,12 +306,14 @@ export default function WorkOrders() {
                       <button
                         onClick={() => handleEdit(wo)}
                         className="text-primary-600 hover:text-primary-800"
+                        aria-label={`Edit work order ${wo.title}`}
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(wo.id)}
                         className="text-red-600 hover:text-red-800"
+                        aria-label={`Delete work order ${wo.title}`}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -330,6 +382,18 @@ export default function WorkOrders() {
               ]}
             />
           </div>
+          <Select
+            label="Status"
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            options={[
+              { value: 'pending', label: 'Pending' },
+              { value: 'in_progress', label: 'In Progress' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'cancelled', label: 'Cancelled' },
+            ]}
+            disabled={!editingOrder}
+          />
           <Input
             label="Due Date"
             type="date"
