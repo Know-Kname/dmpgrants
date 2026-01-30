@@ -16,7 +16,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.VITE_API_URL ? [process.env.VITE_API_URL, 'http://localhost:5173'] : '*',
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
@@ -33,6 +36,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'DMP Cemetery API is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only listen if not running in Vercel (Vercel handles the server itself)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export the app for Vercel serverless functions
+export default app;
