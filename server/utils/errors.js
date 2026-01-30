@@ -14,8 +14,9 @@ class AppError extends Error {
 }
 
 class ValidationError extends AppError {
-  constructor(message) {
+  constructor(message, details = []) {
     super(400, message);
+    this.details = details;
   }
 }
 

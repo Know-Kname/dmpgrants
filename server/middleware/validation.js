@@ -3,7 +3,7 @@
  * Using express-validator following 2025 best practices
  */
 
-import { body, param, query, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { ValidationError } from '../utils/errors.js';
 
 /**
@@ -20,16 +20,60 @@ export const validate = (req, res, next) => {
       value: err.value,
     }));
 
-    throw new ValidationError(
-      JSON.stringify({
-        message: 'Validation failed',
-        errors: formattedErrors,
-      })
-    );
+    throw new ValidationError('Validation failed', formattedErrors);
   }
 
   next();
 };
+
+/**
+ * Auth Validation Rules
+ */
+export const validateLogin = [
+  body('email')
+    .trim()
+    .isEmail()
+    .withMessage('Valid email is required')
+    .normalizeEmail(),
+
+  body('password')
+    .isString()
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ max: 128 })
+    .withMessage('Password must be 128 characters or less'),
+
+  validate,
+];
+
+export const validateRegister = [
+  body('email')
+    .trim()
+    .isEmail()
+    .withMessage('Valid email is required')
+    .normalizeEmail(),
+
+  body('password')
+    .isString()
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be between 8 and 128 characters'),
+
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ min: 2, max: 255 })
+    .withMessage('Name must be between 2 and 255 characters'),
+
+  body('role')
+    .optional()
+    .isIn(['admin', 'manager', 'staff'])
+    .withMessage('Invalid role'),
+
+  validate,
+];
 
 /**
  * Work Order Validation Rules
@@ -43,7 +87,7 @@ export const validateWorkOrder = [
     .withMessage('Title must be between 3 and 255 characters'),
 
   body('description')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ max: 2000 })
     .withMessage('Description must not exceed 2000 characters'),
@@ -61,12 +105,22 @@ export const validateWorkOrder = [
     .withMessage('Invalid priority level'),
 
   body('assignedTo')
-    .optional()
+    .optional({ checkFalsy: true })
     .isUUID()
     .withMessage('Invalid user ID format'),
 
   body('dueDate')
-    .optional()
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .withMessage('Invalid date format'),
+
+  body('status')
+    .optional({ checkFalsy: true })
+    .isIn(['pending', 'in_progress', 'completed', 'cancelled'])
+    .withMessage('Invalid status'),
+
+  body('completedDate')
+    .optional({ checkFalsy: true })
     .isISO8601()
     .withMessage('Invalid date format'),
 
@@ -85,7 +139,7 @@ export const validateGrant = [
     .withMessage('Title must be between 3 and 255 characters'),
 
   body('description')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ max: 5000 })
     .withMessage('Description must not exceed 5000 characters'),
@@ -104,12 +158,12 @@ export const validateGrant = [
     .withMessage('Source must be between 2 and 255 characters'),
 
   body('amount')
-    .optional()
+    .optional({ checkFalsy: true })
     .isFloat({ min: 0 })
     .withMessage('Amount must be a positive number'),
 
   body('deadline')
-    .optional()
+    .optional({ checkFalsy: true })
     .isISO8601()
     .withMessage('Invalid date format'),
 
@@ -120,9 +174,15 @@ export const validateGrant = [
     .withMessage('Invalid status'),
 
   body('applicationDate')
-    .optional()
+    .optional({ checkFalsy: true })
     .isISO8601()
     .withMessage('Invalid date format'),
+
+  body('notes')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 5000 })
+    .withMessage('Notes must not exceed 5000 characters'),
 
   validate,
 ];
@@ -156,10 +216,22 @@ export const validateInventory = [
     .isFloat({ min: 0 })
     .withMessage('Unit price must be a positive number'),
 
+  body('sku')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('SKU must be 100 characters or less'),
+
   body('vendorId')
-    .optional()
+    .optional({ checkFalsy: true })
     .isUUID()
     .withMessage('Invalid vendor ID format'),
+
+  body('location')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage('Location must be 255 characters or less'),
 
   validate,
 ];
@@ -188,6 +260,16 @@ export const validateBurial = [
     .isISO8601()
     .withMessage('Invalid date format'),
 
+  body('dateOfBirth')
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .withMessage('Invalid date format'),
+
+  body('dateOfDeath')
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .withMessage('Invalid date format'),
+
   body('plotLocation')
     .trim()
     .notEmpty()
@@ -209,14 +291,26 @@ export const validateBurial = [
     .withMessage('Grave is required'),
 
   body('contactEmail')
-    .optional()
+    .optional({ checkFalsy: true })
     .isEmail()
     .withMessage('Invalid email format'),
 
   body('contactPhone')
-    .optional()
+    .optional({ checkFalsy: true })
     .matches(/^[\d\s\-\+\(\)]+$/)
     .withMessage('Invalid phone number format'),
+
+  body('permitNumber')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage('Permit number must be 255 characters or less'),
+
+  body('notes')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 5000 })
+    .withMessage('Notes must not exceed 5000 characters'),
 
   validate,
 ];
@@ -240,20 +334,247 @@ export const validateCustomer = [
     .withMessage('Last name must be between 1 and 255 characters'),
 
   body('email')
-    .optional()
+    .optional({ checkFalsy: true })
     .isEmail()
     .withMessage('Invalid email format')
     .normalizeEmail(),
 
   body('phone')
-    .optional()
+    .optional({ checkFalsy: true })
     .matches(/^[\d\s\-\+\(\)]+$/)
     .withMessage('Invalid phone number format'),
 
+  body('address')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage('Address must be 255 characters or less'),
+
+  body('city')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('City must be 100 characters or less'),
+
+  body('state')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('State must be 100 characters or less'),
+
   body('zipCode')
-    .optional()
+    .optional({ checkFalsy: true })
     .matches(/^\d{5}(-\d{4})?$/)
     .withMessage('Invalid ZIP code format'),
+
+  body('notes')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 5000 })
+    .withMessage('Notes must not exceed 5000 characters'),
+
+  validate,
+];
+
+/**
+ * Financial Validation Rules
+ */
+export const validateDeposit = [
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+
+  body('date')
+    .notEmpty()
+    .withMessage('Date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+
+  body('method')
+    .notEmpty()
+    .withMessage('Payment method is required')
+    .isIn(['cash', 'check', 'credit_card', 'wire', 'other'])
+    .withMessage('Invalid payment method'),
+
+  body('reference')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage('Reference must be 255 characters or less'),
+
+  body('customerId')
+    .optional({ checkFalsy: true })
+    .isUUID()
+    .withMessage('Invalid customer ID format'),
+
+  body('notes')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 5000 })
+    .withMessage('Notes must not exceed 5000 characters'),
+
+  validate,
+];
+
+export const validateReceivable = [
+  body('customerId')
+    .notEmpty()
+    .withMessage('Customer is required')
+    .isUUID()
+    .withMessage('Invalid customer ID format'),
+
+  body('invoiceNumber')
+    .trim()
+    .notEmpty()
+    .withMessage('Invoice number is required')
+    .isLength({ max: 100 })
+    .withMessage('Invoice number must be 100 characters or less'),
+
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+
+  body('dueDate')
+    .notEmpty()
+    .withMessage('Due date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+
+  validate,
+];
+
+export const validateReceivableUpdate = [
+  body('amountPaid')
+    .optional({ checkFalsy: true })
+    .isFloat({ min: 0 })
+    .withMessage('Amount paid must be 0 or greater'),
+
+  body('status')
+    .optional({ checkFalsy: true })
+    .isIn(['pending', 'partial', 'paid', 'overdue'])
+    .withMessage('Invalid status'),
+
+  validate,
+];
+
+export const validatePayable = [
+  body('vendorId')
+    .notEmpty()
+    .withMessage('Vendor is required')
+    .isUUID()
+    .withMessage('Invalid vendor ID format'),
+
+  body('invoiceNumber')
+    .trim()
+    .notEmpty()
+    .withMessage('Invoice number is required')
+    .isLength({ max: 100 })
+    .withMessage('Invoice number must be 100 characters or less'),
+
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+
+  body('dueDate')
+    .notEmpty()
+    .withMessage('Due date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+
+  validate,
+];
+
+export const validatePayableUpdate = [
+  body('amountPaid')
+    .optional({ checkFalsy: true })
+    .isFloat({ min: 0 })
+    .withMessage('Amount paid must be 0 or greater'),
+
+  body('status')
+    .optional({ checkFalsy: true })
+    .isIn(['pending', 'partial', 'paid', 'overdue'])
+    .withMessage('Invalid status'),
+
+  validate,
+];
+
+/**
+ * Contract Validation Rules
+ */
+export const validateContract = [
+  body('contractNumber')
+    .trim()
+    .notEmpty()
+    .withMessage('Contract number is required')
+    .isLength({ max: 100 })
+    .withMessage('Contract number must be 100 characters or less'),
+
+  body('type')
+    .notEmpty()
+    .withMessage('Contract type is required')
+    .isIn(['pre_need', 'at_need'])
+    .withMessage('Invalid contract type'),
+
+  body('customerId')
+    .notEmpty()
+    .withMessage('Customer is required')
+    .isUUID()
+    .withMessage('Invalid customer ID format'),
+
+  body('totalAmount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Total amount must be greater than 0'),
+
+  body('signedDate')
+    .notEmpty()
+    .withMessage('Signed date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+
+  body('paymentPlan')
+    .optional({ checkFalsy: true })
+    .isObject()
+    .withMessage('Payment plan must be an object'),
+
+  body('items')
+    .optional({ checkFalsy: true })
+    .isArray()
+    .withMessage('Items must be an array'),
+
+  body('items.*.description')
+    .trim()
+    .notEmpty()
+    .withMessage('Item description is required')
+    .isLength({ max: 255 })
+    .withMessage('Item description must be 255 characters or less'),
+
+  body('items.*.amount')
+    .isFloat({ min: 0 })
+    .withMessage('Item amount must be 0 or greater'),
+
+  validate,
+];
+
+export const validateContractUpdate = [
+  body('totalAmount')
+    .optional({ checkFalsy: true })
+    .isFloat({ min: 0.01 })
+    .withMessage('Total amount must be greater than 0'),
+
+  body('amountPaid')
+    .optional({ checkFalsy: true })
+    .isFloat({ min: 0 })
+    .withMessage('Amount paid must be 0 or greater'),
+
+  body('status')
+    .optional({ checkFalsy: true })
+    .isIn(['active', 'paid', 'cancelled', 'transferred'])
+    .withMessage('Invalid contract status'),
+
+  body('paymentPlan')
+    .optional({ checkFalsy: true })
+    .isObject()
+    .withMessage('Payment plan must be an object'),
 
   validate,
 ];

@@ -19,12 +19,14 @@ const formatErrorResponse = (err, env) => {
   // Only include stack trace in development
   if (env === 'development') {
     response.stack = err.stack;
-    response.details = err.details;
   }
 
   // Only include operational error details
   if (err.isOperational) {
     response.type = err.name;
+    if (err.details) {
+      response.details = err.details;
+    }
   } else {
     // For non-operational errors, use generic message
     response.message = 'Internal server error';
