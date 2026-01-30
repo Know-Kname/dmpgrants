@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { Card, CardHeader, CardBody, LoadingSpinner } from '../components/ui';
@@ -8,6 +9,7 @@ import {
 import { format } from 'date-fns';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     workOrders: { total: 0, pending: 0, inProgress: 0, completed: 0 },
@@ -271,19 +273,19 @@ export default function Dashboard() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+            <button onClick={() => navigate('/work-orders')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
               <ClipboardList className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
               <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">New Work Order</span>
             </button>
-            <button className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+            <button onClick={() => navigate('/burials')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
               <Users className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
               <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Record Burial</span>
             </button>
-            <button className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+            <button onClick={() => navigate('/financial')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
               <DollarSign className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
               <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Add Deposit</span>
             </button>
-            <button className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+            <button onClick={() => navigate('/inventory')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
               <Package className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
               <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Update Inventory</span>
             </button>

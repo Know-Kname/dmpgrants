@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './lib/auth';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import WorkOrders from './pages/WorkOrders';
+import Customers from './pages/Customers';
 import Grants from './pages/Grants';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -25,12 +25,12 @@ function AppRoutes() {
       >
         <Route index element={<Dashboard />} />
         <Route path="work-orders" element={<WorkOrders />} />
-        <Route path="inventory" element={<div className="text-2xl">Inventory (Coming Soon)</div>} />
-        <Route path="financial" element={<div className="text-2xl">Financial (Coming Soon)</div>} />
-        <Route path="burials" element={<div className="text-2xl">Burials (Coming Soon)</div>} />
-        <Route path="contracts" element={<div className="text-2xl">Contracts (Coming Soon)</div>} />
+        <Route path="inventory" element={<Inventory />} />
+        <Route path="financial" element={<Financial />} />
+        <Route path="burials" element={<Burials />} />
+        <Route path="contracts" element={<Contracts />} />
         <Route path="grants" element={<Grants />} />
-        <Route path="customers" element={<div className="text-2xl">Customers (Coming Soon)</div>} />
+        <Route path="customers" element={<Customers />} />
       </Route>
     </Routes>
   );
