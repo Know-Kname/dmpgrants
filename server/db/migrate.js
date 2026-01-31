@@ -17,7 +17,8 @@ async function runMigration() {
     console.log('Database migration completed successfully!');
 
     // Create default admin user (password: admin123)
-    const bcrypt = await import('bcryptjs');
+    const bcryptModule = await import('bcryptjs');
+    const bcrypt = bcryptModule.default;
     const hashedPassword = await bcrypt.hash('admin123', 10);
 
     await pool.query(`
