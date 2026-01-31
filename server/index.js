@@ -1,6 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import authRoutes from './routes/auth.js';
 import workOrderRoutes from './routes/workOrders.js';
@@ -31,6 +36,14 @@ app.use('/api/customers', customersRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'DMP Cemetery API is running' });
+});
+
+// Serve static files from the dist folder (production build)
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Handle SPA routing - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(PORT, () => {

@@ -3,7 +3,7 @@ import { api } from '../lib/api';
 import { Card, CardHeader, CardBody, LoadingSpinner } from '../components/ui';
 import {
   ClipboardList, Package, DollarSign, Users, AlertCircle,
-  TrendingUp, Calendar, CheckCircle2, Clock
+  TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 
