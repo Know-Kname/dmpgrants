@@ -10,6 +10,7 @@ import burialsRoutes from './routes/burials.js';
 import contractsRoutes from './routes/contracts.js';
 import grantsRoutes from './routes/grants.js';
 import customersRoutes from './routes/customers.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/burials', burialsRoutes);
 app.use('/api/contracts', contractsRoutes);
 app.use('/api/grants', grantsRoutes);
 app.use('/api/customers', customersRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'DMP Cemetery API is running' });

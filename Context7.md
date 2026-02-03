@@ -20,6 +20,7 @@ This project is a comprehensive business management solution for Detroit Memoria
 4.  **Burials:** Deceased records, plot locations, permits.
 5.  **Contracts:** Pre-need and At-need agreements, payment plans.
 6.  **Grants:** Benefits and funding opportunity tracking.
+7.  **Customers:** Customer relationship management.
 
 ## 4. Development Standards & Rules
 *   **Code Quality:**
@@ -45,20 +46,20 @@ This project is a comprehensive business management solution for Detroit Memoria
     *   Basic project structure (Frontend + Backend).
     *   Database schema setup.
     *   Authentication flow.
-    *   Basic Dashboard, Work Orders, and Grants pages.
+    *   **Core Modules:** Work Orders, Inventory, Financial, Burials, Contracts, Customers, Grants.
+    *   **Dashboard:** Real-time data integration with quick actions.
     *   Backend error handling and validation infrastructure.
     *   Cloud deployment configurations.
 *   **Pending/In-Progress:**
-    *   Full implementation of Inventory, Financial, Burials, and Contracts modules (currently placeholders).
-    *   Advanced reporting.
+    *   Advanced reporting and data visualization (Charts).
     *   Mobile app specific features.
     *   Integration with legacy data.
 
 ## 6. Improvement Plan (Immediate Focus)
-1.  **Module Completion:** Flesh out the "Coming Soon" placeholders (Inventory, Financial, Burials, Contracts).
-2.  **Enhanced UI:** Improve data visualization on Dashboard.
+1.  **Data Visualization:** Implement charts on Dashboard using `recharts`.
+2.  **Performance:** Optimize dashboard data loading with aggregated backend endpoints.
 3.  **Testing:** Add unit and integration tests.
-4.  **Refinement:** Polish existing Work Orders and Grants modules based on user feedback.
+4.  **Refinement:** Polish existing modules based on user feedback.
 
 ## 7. Critical Instructions for Agents
 *   **Always** read this Context7 file before starting work.
