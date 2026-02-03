@@ -18,18 +18,55 @@ export const validate = (req, res, next) => {
       field: err.path,
       message: err.msg,
       value: err.value,
+      location: err.location,
     }));
 
-    throw new ValidationError(
-      JSON.stringify({
-        message: 'Validation failed',
-        errors: formattedErrors,
-      })
-    );
+    throw new ValidationError('Validation failed', formattedErrors);
   }
 
   next();
 };
+
+/**
+ * Auth Validation Rules
+ */
+export const validateLogin = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email address'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+  validate,
+];
+
+export const validateRegister = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email address'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required'),
+  body('role')
+    .optional({ values: 'falsy' })
+    .isIn(['admin', 'manager', 'staff'])
+    .withMessage('Invalid role'),
+  validate,
+];
 
 /**
  * Work Order Validation Rules
@@ -43,7 +80,7 @@ export const validateWorkOrder = [
     .withMessage('Title must be between 3 and 255 characters'),
 
   body('description')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isLength({ max: 2000 })
     .withMessage('Description must not exceed 2000 characters'),
@@ -61,14 +98,19 @@ export const validateWorkOrder = [
     .withMessage('Invalid priority level'),
 
   body('assignedTo')
-    .optional()
+    .optional({ values: 'falsy' })
     .isUUID()
     .withMessage('Invalid user ID format'),
 
   body('dueDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
     .withMessage('Invalid date format'),
+
+  body('status')
+    .optional({ values: 'falsy' })
+    .isIn(['pending', 'in_progress', 'completed', 'cancelled'])
+    .withMessage('Invalid status'),
 
   validate,
 ];
@@ -85,7 +127,7 @@ export const validateGrant = [
     .withMessage('Title must be between 3 and 255 characters'),
 
   body('description')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isLength({ max: 5000 })
     .withMessage('Description must not exceed 5000 characters'),
@@ -104,12 +146,12 @@ export const validateGrant = [
     .withMessage('Source must be between 2 and 255 characters'),
 
   body('amount')
-    .optional()
+    .optional({ values: 'falsy' })
     .isFloat({ min: 0 })
     .withMessage('Amount must be a positive number'),
 
   body('deadline')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
     .withMessage('Invalid date format'),
 
@@ -120,7 +162,7 @@ export const validateGrant = [
     .withMessage('Invalid status'),
 
   body('applicationDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
     .withMessage('Invalid date format'),
 
@@ -157,7 +199,7 @@ export const validateInventory = [
     .withMessage('Unit price must be a positive number'),
 
   body('vendorId')
-    .optional()
+    .optional({ values: 'falsy' })
     .isUUID()
     .withMessage('Invalid vendor ID format'),
 
@@ -209,12 +251,12 @@ export const validateBurial = [
     .withMessage('Grave is required'),
 
   body('contactEmail')
-    .optional()
+    .optional({ values: 'falsy' })
     .isEmail()
     .withMessage('Invalid email format'),
 
   body('contactPhone')
-    .optional()
+    .optional({ values: 'falsy' })
     .matches(/^[\d\s\-\+\(\)]+$/)
     .withMessage('Invalid phone number format'),
 
@@ -240,21 +282,177 @@ export const validateCustomer = [
     .withMessage('Last name must be between 1 and 255 characters'),
 
   body('email')
-    .optional()
+    .optional({ values: 'falsy' })
     .isEmail()
     .withMessage('Invalid email format')
     .normalizeEmail(),
 
   body('phone')
-    .optional()
+    .optional({ values: 'falsy' })
     .matches(/^[\d\s\-\+\(\)]+$/)
     .withMessage('Invalid phone number format'),
 
   body('zipCode')
-    .optional()
+    .optional({ values: 'falsy' })
     .matches(/^\d{5}(-\d{4})?$/)
     .withMessage('Invalid ZIP code format'),
 
+  validate,
+];
+
+/**
+ * Financial Validation Rules
+ */
+export const validateDeposit = [
+  body('amount')
+    .isFloat({ min: 0 })
+    .withMessage('Amount must be a positive number'),
+  body('date')
+    .notEmpty()
+    .withMessage('Date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+  body('method')
+    .notEmpty()
+    .withMessage('Payment method is required')
+    .isIn(['cash', 'check', 'credit_card', 'wire', 'other'])
+    .withMessage('Invalid payment method'),
+  body('customerId')
+    .optional({ values: 'falsy' })
+    .isUUID()
+    .withMessage('Invalid customer ID format'),
+  validate,
+];
+
+export const validateReceivable = [
+  body('customerId')
+    .notEmpty()
+    .withMessage('Customer is required')
+    .isUUID()
+    .withMessage('Invalid customer ID format'),
+  body('invoiceNumber')
+    .trim()
+    .notEmpty()
+    .withMessage('Invoice number is required'),
+  body('amount')
+    .isFloat({ min: 0 })
+    .withMessage('Amount must be a positive number'),
+  body('dueDate')
+    .notEmpty()
+    .withMessage('Due date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+  validate,
+];
+
+export const validateReceivableUpdate = [
+  body('amountPaid')
+    .optional({ values: 'falsy' })
+    .isFloat({ min: 0 })
+    .withMessage('Amount paid must be a positive number'),
+  body('status')
+    .optional({ values: 'falsy' })
+    .isIn(['pending', 'partial', 'paid', 'overdue'])
+    .withMessage('Invalid status'),
+  validate,
+];
+
+export const validatePayable = [
+  body('vendorId')
+    .notEmpty()
+    .withMessage('Vendor is required')
+    .isUUID()
+    .withMessage('Invalid vendor ID format'),
+  body('invoiceNumber')
+    .trim()
+    .notEmpty()
+    .withMessage('Invoice number is required'),
+  body('amount')
+    .isFloat({ min: 0 })
+    .withMessage('Amount must be a positive number'),
+  body('dueDate')
+    .notEmpty()
+    .withMessage('Due date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+  validate,
+];
+
+export const validatePayableUpdate = [
+  body('amountPaid')
+    .optional({ values: 'falsy' })
+    .isFloat({ min: 0 })
+    .withMessage('Amount paid must be a positive number'),
+  body('status')
+    .optional({ values: 'falsy' })
+    .isIn(['pending', 'partial', 'paid', 'overdue'])
+    .withMessage('Invalid status'),
+  validate,
+];
+
+/**
+ * Contract Validation Rules
+ */
+export const validateContract = [
+  body('contractNumber')
+    .trim()
+    .notEmpty()
+    .withMessage('Contract number is required'),
+  body('type')
+    .notEmpty()
+    .withMessage('Contract type is required')
+    .isIn(['pre_need', 'at_need'])
+    .withMessage('Invalid contract type'),
+  body('customerId')
+    .notEmpty()
+    .withMessage('Customer is required')
+    .isUUID()
+    .withMessage('Invalid customer ID format'),
+  body('totalAmount')
+    .isFloat({ min: 0 })
+    .withMessage('Total amount must be a positive number'),
+  body('signedDate')
+    .notEmpty()
+    .withMessage('Signed date is required')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+  body('paymentPlan')
+    .optional({ values: 'falsy' })
+    .custom((value) => value !== null && typeof value === 'object')
+    .withMessage('Payment plan must be an object'),
+  body('items')
+    .optional({ values: 'falsy' })
+    .isArray()
+    .withMessage('Items must be an array'),
+  body('items.*.description')
+    .optional({ values: 'falsy' })
+    .trim()
+    .notEmpty()
+    .withMessage('Item description is required'),
+  body('items.*.amount')
+    .optional({ values: 'falsy' })
+    .isFloat({ min: 0 })
+    .withMessage('Item amount must be a positive number'),
+  validate,
+];
+
+export const validateContractUpdate = [
+  body('totalAmount')
+    .optional({ values: 'falsy' })
+    .isFloat({ min: 0 })
+    .withMessage('Total amount must be a positive number'),
+  body('amountPaid')
+    .optional({ values: 'falsy' })
+    .isFloat({ min: 0 })
+    .withMessage('Amount paid must be a positive number'),
+  body('status')
+    .optional({ values: 'falsy' })
+    .isIn(['active', 'paid', 'cancelled', 'transferred'])
+    .withMessage('Invalid status'),
+  body('paymentPlan')
+    .optional({ values: 'falsy' })
+    .custom((value) => value !== null && typeof value === 'object')
+    .withMessage('Payment plan must be an object'),
   validate,
 ];
 

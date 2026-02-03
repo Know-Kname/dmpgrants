@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
+import { authApi } from './api';
 
 interface AuthContextType {
   user: User | null;
@@ -24,13 +25,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleLogout = () => {
+      setToken(null);
+      setUser(null);
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'token' && !event.newValue) {
+        handleLogout();
+      }
+    };
+
+    window.addEventListener('auth:logout', handleLogout);
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('auth:logout', handleLogout);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
   const login = async (email: string, password: string) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
+    const data = await authApi.login(email, password);
     if (data.token) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -42,8 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    authApi.logout();
     setToken(null);
     setUser(null);
   };

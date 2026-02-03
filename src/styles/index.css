@@ -3,52 +3,315 @@
 @tailwind utilities;
 
 /**
- * Global Styles for Cemetery Management System
+ * DMP Cemetery Management System - Design System
+ * Professional, dignified theme with dark mode support
  * Optimized for Desktop, Tablet (iPad), and Mobile devices
- * Following 2025 responsive design best practices
  */
 
-:root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  line-height: 1.6;
-  font-weight: 400;
-  color-scheme: light dark;
+@layer base {
+  :root {
+    /* ========================================
+       COLOR PRIMITIVES (HSL Format)
+       ======================================== */
 
-  /* Touch-friendly sizing */
-  --touch-target-min: 44px; /* iOS/iPadOS recommendation */
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
+    /* Slate - Professional neutral tones */
+    --slate-50: 210 40% 98%;
+    --slate-100: 210 40% 96%;
+    --slate-200: 214 32% 91%;
+    --slate-300: 213 27% 84%;
+    --slate-400: 215 20% 65%;
+    --slate-500: 215 16% 47%;
+    --slate-600: 215 19% 35%;
+    --slate-700: 215 25% 27%;
+    --slate-800: 217 33% 17%;
+    --slate-900: 222 47% 11%;
+    --slate-950: 229 84% 5%;
+
+    /* Primary - Deep Teal/Blue (dignified, professional) */
+    --primary-50: 199 89% 97%;
+    --primary-100: 198 93% 93%;
+    --primary-200: 197 87% 85%;
+    --primary-300: 197 83% 74%;
+    --primary-400: 198 76% 59%;
+    --primary-500: 199 89% 48%;
+    --primary-600: 200 98% 39%;
+    --primary-700: 201 96% 32%;
+    --primary-800: 201 90% 27%;
+    --primary-900: 202 80% 24%;
+    --primary-950: 204 80% 16%;
+
+    /* Success - Emerald */
+    --success-50: 152 81% 96%;
+    --success-100: 149 80% 90%;
+    --success-200: 152 76% 80%;
+    --success-300: 156 72% 67%;
+    --success-400: 158 64% 52%;
+    --success-500: 160 84% 39%;
+    --success-600: 161 94% 30%;
+    --success-700: 163 94% 24%;
+    --success-800: 163 88% 20%;
+    --success-900: 164 86% 16%;
+    --success-950: 166 91% 9%;
+
+    /* Warning - Amber */
+    --warning-50: 48 100% 96%;
+    --warning-100: 48 96% 89%;
+    --warning-200: 48 97% 77%;
+    --warning-300: 46 97% 65%;
+    --warning-400: 43 96% 56%;
+    --warning-500: 38 92% 50%;
+    --warning-600: 32 95% 44%;
+    --warning-700: 26 90% 37%;
+    --warning-800: 23 83% 31%;
+    --warning-900: 22 78% 26%;
+    --warning-950: 21 92% 14%;
+
+    /* Danger - Rose */
+    --danger-50: 355 100% 97%;
+    --danger-100: 356 100% 94%;
+    --danger-200: 353 96% 90%;
+    --danger-300: 353 95% 81%;
+    --danger-400: 351 95% 71%;
+    --danger-500: 350 89% 60%;
+    --danger-600: 347 77% 50%;
+    --danger-700: 345 83% 41%;
+    --danger-800: 343 80% 35%;
+    --danger-900: 342 75% 30%;
+    --danger-950: 343 88% 16%;
+
+    /* Info - Cyan */
+    --info-50: 183 100% 96%;
+    --info-100: 185 96% 90%;
+    --info-200: 186 94% 82%;
+    --info-300: 187 92% 69%;
+    --info-400: 188 86% 53%;
+    --info-500: 189 94% 43%;
+    --info-600: 192 91% 36%;
+    --info-700: 193 82% 31%;
+    --info-800: 194 70% 27%;
+    --info-900: 196 64% 24%;
+    --info-950: 197 79% 15%;
+
+    /* ========================================
+       SEMANTIC TOKENS - LIGHT MODE
+       ======================================== */
+
+    /* Backgrounds */
+    --background: 0 0% 100%;
+    --background-subtle: var(--slate-50);
+    --background-muted: var(--slate-100);
+    --background-elevated: 0 0% 100%;
+
+    /* Foregrounds */
+    --foreground: var(--slate-900);
+    --foreground-muted: var(--slate-500);
+    --foreground-subtle: var(--slate-400);
+
+    /* Cards & Surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: var(--slate-900);
+    --card-hover: var(--slate-50);
+
+    /* Borders */
+    --border: var(--slate-200);
+    --border-hover: var(--slate-300);
+    --border-focus: var(--primary-500);
+
+    /* Inputs */
+    --input: var(--slate-200);
+    --input-focus: var(--primary-500);
+
+    /* Primary */
+    --primary: var(--primary-600);
+    --primary-hover: var(--primary-700);
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: var(--slate-100);
+    --secondary-hover: var(--slate-200);
+    --secondary-foreground: var(--slate-900);
+
+    /* Accent */
+    --accent: var(--slate-100);
+    --accent-foreground: var(--slate-900);
+
+    /* Destructive */
+    --destructive: var(--danger-600);
+    --destructive-hover: var(--danger-700);
+    --destructive-foreground: 0 0% 100%;
+
+    /* Ring (focus) */
+    --ring: var(--primary-500);
+    --ring-offset: 0 0% 100%;
+
+    /* Sidebar */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: var(--slate-600);
+    --sidebar-active: var(--primary-50);
+    --sidebar-active-foreground: var(--primary-700);
+    --sidebar-hover: var(--slate-50);
+
+    /* Status Colors */
+    --status-pending: var(--warning-500);
+    --status-in-progress: var(--info-500);
+    --status-completed: var(--success-500);
+    --status-cancelled: var(--slate-400);
+
+    /* ========================================
+       SIZING & SPACING
+       ======================================== */
+    --touch-target-min: 44px;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+
+    /* Border Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+    /* Animation */
+    --transition-fast: 150ms;
+    --transition-base: 200ms;
+    --transition-slow: 300ms;
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ========================================
+     DARK MODE SEMANTIC TOKENS
+     ======================================== */
+  .dark {
+    color-scheme: dark;
+
+    /* Backgrounds */
+    --background: var(--slate-950);
+    --background-subtle: var(--slate-900);
+    --background-muted: var(--slate-800);
+    --background-elevated: var(--slate-900);
+
+    /* Foregrounds */
+    --foreground: var(--slate-50);
+    --foreground-muted: var(--slate-400);
+    --foreground-subtle: var(--slate-500);
+
+    /* Cards & Surfaces */
+    --card: var(--slate-900);
+    --card-foreground: var(--slate-50);
+    --card-hover: var(--slate-800);
+
+    /* Borders */
+    --border: var(--slate-800);
+    --border-hover: var(--slate-700);
+    --border-focus: var(--primary-500);
+
+    /* Inputs */
+    --input: var(--slate-800);
+    --input-focus: var(--primary-500);
+
+    /* Primary */
+    --primary: var(--primary-500);
+    --primary-hover: var(--primary-400);
+    --primary-foreground: var(--slate-950);
+
+    /* Secondary */
+    --secondary: var(--slate-800);
+    --secondary-hover: var(--slate-700);
+    --secondary-foreground: var(--slate-100);
+
+    /* Accent */
+    --accent: var(--slate-800);
+    --accent-foreground: var(--slate-100);
+
+    /* Destructive */
+    --destructive: var(--danger-500);
+    --destructive-hover: var(--danger-400);
+    --destructive-foreground: 0 0% 100%;
+
+    /* Ring */
+    --ring: var(--primary-400);
+    --ring-offset: var(--slate-950);
+
+    /* Sidebar */
+    --sidebar: var(--slate-900);
+    --sidebar-foreground: var(--slate-400);
+    --sidebar-active: var(--primary-950);
+    --sidebar-active-foreground: var(--primary-400);
+    --sidebar-hover: var(--slate-800);
+
+    /* Shadows for dark mode */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+  }
+
+  /* Base styles */
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Prevent text size adjustment on orientation change */
-  -webkit-text-size-adjust: 100%;
-  /* Improve touch scrolling */
-  -webkit-overflow-scrolling: touch;
-}
+/* ========================================
+   INTERACTION STYLES
+   ======================================== */
 
-/* Improve touch interactions on iOS/iPadOS */
-button, a, input, select, textarea {
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+/* Improve touch interactions */
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-/* Ensure buttons and clickable elements are touch-friendly */
-button, a[role="button"], [role="button"] {
+/* Ensure buttons are touch-friendly */
+button,
+a[role="button"],
+[role="button"] {
   min-height: var(--touch-target-min);
-  min-width: var(--touch-target-min);
 }
 
-/* Responsive Tables - Scroll horizontally on small screens */
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
 @media (max-width: 1024px) {
   .table-container {
     overflow-x: auto;
@@ -60,14 +323,11 @@ button, a[role="button"], [role="button"] {
   }
 }
 
-/* iPad Portrait & Landscape Optimizations */
 @media (min-width: 768px) and (max-width: 1024px) {
-  /* Optimize spacing for iPad */
   .container {
     padding: var(--spacing-lg);
   }
 
-  /* Make sidebar collapsible on iPad portrait */
   @media (orientation: portrait) {
     aside {
       width: 100%;
@@ -76,30 +336,11 @@ button, a[role="button"], [role="button"] {
   }
 }
 
-/* Tablet-specific improvements */
-@media (min-width: 640px) and (max-width: 1024px) {
-  /* Grid adjustments for tablets */
-  .grid-cols-1.md\\:grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .grid-cols-1.md\\:grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .grid-cols-1.md\\:grid-cols-4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Mobile-specific improvements */
 @media (max-width: 640px) {
-  /* Stack everything on mobile */
-  .grid {
+  .mobile-stack {
     grid-template-columns: 1fr !important;
   }
 
-  /* Full-width modals on mobile */
   .modal {
     width: 100%;
     max-width: 100%;
@@ -107,102 +348,241 @@ button, a[role="button"], [role="button"] {
     border-radius: 0;
   }
 
-  /* Improve form spacing */
-  input, select, textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 
-/* Print styles */
+/* ========================================
+   PRINT STYLES
+   ======================================== */
 @media print {
-  /* Hide navigation and non-essential elements */
-  nav, aside, button, .no-print {
+
+  nav,
+  aside,
+  button,
+  .no-print {
     display: none !important;
   }
 
-  /* Optimize for printing */
   body {
-    background: white;
-    color: black;
+    background: white !important;
+    color: black !important;
   }
 
-  /* Prevent page breaks inside elements */
-  .card, table, .no-break {
+  .card,
+  table,
+  .no-break {
     page-break-inside: avoid;
   }
 }
 
-/* Dark mode support (future enhancement) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
+/* ========================================
+   ANIMATIONS
+   ======================================== */
 
-  /* Dark mode styles can be added here */
-}
-
-/* Focus visible for accessibility */
-*:focus-visible {
-  outline: 2px solid #0ea5e9;
-  outline-offset: 2px;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Loading states */
 .loading {
   pointer-events: none;
   opacity: 0.6;
 }
 
-/* Skeleton loading animation */
 @keyframes skeleton-loading {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
 }
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
-  );
+  background: linear-gradient(90deg,
+      hsl(var(--background-muted)) 25%,
+      hsl(var(--border)) 50%,
+      hsl(var(--background-muted)) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
 }
 
-/* Custom scrollbar for webkit browsers */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-base) var(--ease-out);
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up var(--transition-slow) var(--ease-out);
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in var(--transition-base) var(--ease-out);
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: hsl(var(--background-muted));
+  border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: hsl(var(--foreground-subtle));
+  border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: hsl(var(--foreground-muted));
 }
 
-/* Utility classes */
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
 .text-balance {
   text-wrap: balance;
 }
 
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: var(--ease-in-out);
+  transition-duration: var(--transition-fast);
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: var(--ease-in-out);
+  transition-duration: var(--transition-base);
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: var(--ease-out);
+  transition-duration: var(--transition-base);
+}
+
+/* Glass effect */
+.glass {
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-400)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Status indicators */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.status-dot-pending {
+  background-color: hsl(var(--status-pending));
+}
+
+.status-dot-in-progress {
+  background-color: hsl(var(--status-in-progress));
+}
+
+.status-dot-completed {
+  background-color: hsl(var(--status-completed));
+}
+
+.status-dot-cancelled {
+  background-color: hsl(var(--status-cancelled));
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all var(--transition-base) var(--ease-out);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Focus ring */
+.focus-ring {
+  transition: box-shadow var(--transition-fast) var(--ease-out);
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--ring-offset)), 0 0 0 4px hsl(var(--ring));
 }

@@ -3,46 +3,119 @@
  * Following 2025 Express.js best practices
  */
 
-import { AppError } from '../utils/errors.js';
+import { AppError, DatabaseError, NotFoundError, ValidationError } from '../utils/errors.js';
 
 /**
  * Format error response for client
  * Ensures no sensitive data is exposed
  */
-const formatErrorResponse = (err, env) => {
-  const response = {
-    success: false,
-    message: err.message || 'An error occurred',
-    statusCode: err.statusCode || 500,
+const formatErrorResponse = (err, req, env) => {
+  const isProduction = env === 'production';
+  const includeDetails = err.code === 'VALIDATION_ERROR' || (!isProduction && err.details);
+
+  const errorPayload = {
+    message: err.isOperational ? err.message : 'Internal server error',
+    code: err.code || 'INTERNAL_SERVER_ERROR',
+    type: err.name,
   };
 
-  // Only include stack trace in development
-  if (env === 'development') {
-    response.stack = err.stack;
-    response.details = err.details;
+  if (includeDetails) {
+    errorPayload.details = err.details;
   }
 
-  // Only include operational error details
-  if (err.isOperational) {
-    response.type = err.name;
-  } else {
-    // For non-operational errors, use generic message
-    response.message = 'Internal server error';
+  if (!isProduction && err.stack) {
+    errorPayload.stack = err.stack;
   }
 
-  return response;
+  return {
+    success: false,
+    statusCode: err.statusCode || 500,
+    error: errorPayload,
+    requestId: req.requestId,
+    timestamp: new Date().toISOString(),
+  };
 };
 
 /**
  * Log error for monitoring
  */
-const logError = (err) => {
+const logError = (err, req) => {
   console.error('ERROR:', {
     name: err.name,
     message: err.message,
     statusCode: err.statusCode,
+    code: err.code,
+    requestId: req.requestId,
+    method: req.method,
+    path: req.originalUrl,
+    userId: req.user?.id,
+    durationMs: req.requestStart ? Date.now() - req.requestStart : undefined,
+    details: err.details,
     stack: err.stack,
     timestamp: new Date().toISOString(),
+  });
+};
+
+const mapPostgresError = (err) => {
+  if (!err?.code) return null;
+
+  const details = {
+    dbCode: err.code,
+    constraint: err.constraint,
+    table: err.table,
+    column: err.column,
+  };
+
+  switch (err.code) {
+    case '23505':
+      return new AppError(409, 'Resource already exists', {
+        code: 'CONFLICT',
+        details,
+        isOperational: true,
+      });
+    case '23503':
+      return new AppError(409, 'Related resource not found', {
+        code: 'FOREIGN_KEY_CONFLICT',
+        details,
+        isOperational: true,
+      });
+    case '23502':
+      return new AppError(400, 'Missing required field', {
+        code: 'NOT_NULL_VIOLATION',
+        details,
+        isOperational: true,
+      });
+    case '23514':
+      return new AppError(400, 'Invalid value', {
+        code: 'CHECK_VIOLATION',
+        details,
+        isOperational: true,
+      });
+    case '22P02':
+      return new AppError(400, 'Invalid input syntax', {
+        code: 'INVALID_INPUT',
+        details,
+        isOperational: true,
+      });
+    default:
+      return new DatabaseError(err.message, details, err);
+  }
+};
+
+const normalizeError = (err) => {
+  if (err instanceof AppError) return err;
+
+  const mappedDbError = mapPostgresError(err);
+  if (mappedDbError) return mappedDbError;
+
+  if (err instanceof SyntaxError && 'body' in err) {
+    return new ValidationError('Invalid JSON payload');
+  }
+
+  return new AppError(500, 'Internal server error', {
+    code: 'INTERNAL_SERVER_ERROR',
+    isOperational: false,
+    cause: err,
   });
 };
 
@@ -51,18 +124,15 @@ const logError = (err) => {
  * Must be placed last in middleware chain
  */
 export const errorHandler = (err, req, res, next) => {
-  // Log all errors
-  logError(err);
+  const normalizedError = normalizeError(err);
 
-  // Set default values if not an AppError
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
-  err.isOperational = err.isOperational !== undefined ? err.isOperational : false;
+  // Log all errors
+  logError(normalizedError, req);
 
   // Format and send response
-  const errorResponse = formatErrorResponse(err, process.env.NODE_ENV);
+  const errorResponse = formatErrorResponse(normalizedError, req, process.env.NODE_ENV);
 
-  res.status(err.statusCode).json(errorResponse);
+  res.status(normalizedError.statusCode || 500).json(errorResponse);
 };
 
 /**
@@ -80,6 +150,6 @@ export const asyncHandler = (fn) => {
  * For undefined routes
  */
 export const notFoundHandler = (req, res, next) => {
-  const err = new AppError(404, `Route ${req.originalUrl} not found`);
+  const err = new NotFoundError(`Route ${req.originalUrl}`);
   next(err);
 };

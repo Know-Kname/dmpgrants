@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { WorkOrder } from '../types';
-import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
-import { Plus, Search, Filter, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
+import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState, Alert } from '../components/ui';
+import { Plus, Search, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import { getErrorDetails, getErrorMessage, getErrorRequestId } from '../lib/errors';
 
 export default function WorkOrders() {
   const [workOrders, setWorkOrders] = useState<any[]>([]);
@@ -12,6 +12,8 @@ export default function WorkOrders() {
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,9 +31,27 @@ export default function WorkOrders() {
     filterOrders();
   }, [workOrders, searchTerm, statusFilter]);
 
+  const handleError = (err: unknown, fallback: string) => {
+    const message = getErrorMessage(err, fallback);
+    const details = getErrorDetails(err);
+    const requestId = getErrorRequestId(err);
+    setError(message);
+    setErrorDetails(requestId ? [...details, `Request ID: ${requestId}`] : details);
+  };
+
+  const clearError = () => {
+    setError(null);
+    setErrorDetails([]);
+  };
+
   const loadWorkOrders = async () => {
-    const data = await api.get('/work-orders');
-    setWorkOrders(data);
+    try {
+      const data = await api.get('/work-orders');
+      setWorkOrders(data);
+      clearError();
+    } catch (err) {
+      handleError(err, 'Failed to load work orders.');
+    }
   };
 
   const filterOrders = () => {
@@ -59,12 +79,13 @@ export default function WorkOrders() {
       } else {
         await api.post('/work-orders', formData);
       }
+      clearError();
       setShowModal(false);
       setEditingOrder(null);
       resetForm();
       loadWorkOrders();
     } catch (error) {
-      console.error('Failed to save work order:', error);
+      handleError(error, 'Failed to save work order.');
     }
   };
 
@@ -83,8 +104,13 @@ export default function WorkOrders() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this work order?')) {
-      await api.delete(`/work-orders/${id}`);
-      loadWorkOrders();
+      try {
+        await api.delete(`/work-orders/${id}`);
+        clearError();
+        loadWorkOrders();
+      } catch (error) {
+        handleError(error, 'Failed to delete work order.');
+      }
     }
   };
 
@@ -147,6 +173,15 @@ export default function WorkOrders() {
           New Work Order
         </Button>
       </div>
+
+      {error && (
+        <Alert
+          title="Something went wrong"
+          message={error}
+          details={errorDetails}
+          onDismiss={clearError}
+        />
+      )}
 
       {/* Filters */}
       <Card>
@@ -256,12 +291,14 @@ export default function WorkOrders() {
                       <button
                         onClick={() => handleEdit(wo)}
                         className="text-primary-600 hover:text-primary-800"
+                        aria-label="Edit work order"
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(wo.id)}
                         className="text-red-600 hover:text-red-800"
+                        aria-label="Delete work order"
                       >
                         <Trash2 size={18} />
                       </button>

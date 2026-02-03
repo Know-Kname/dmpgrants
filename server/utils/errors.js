@@ -4,48 +4,65 @@
  */
 
 class AppError extends Error {
-  constructor(statusCode, message, isOperational = true) {
+  constructor(statusCode, message, options = {}) {
     super(message);
+    const { code, details, isOperational = true, cause } = options;
     this.statusCode = statusCode;
+    this.code = code;
+    this.details = details;
     this.isOperational = isOperational;
     this.name = this.constructor.name;
+    if (cause) {
+      this.cause = cause;
+    }
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
 class ValidationError extends AppError {
-  constructor(message) {
-    super(400, message);
+  constructor(message = 'Validation failed', details = []) {
+    super(400, message, { code: 'VALIDATION_ERROR', details });
   }
 }
 
 class NotFoundError extends AppError {
-  constructor(resource) {
-    super(404, `${resource} not found`);
+  constructor(resource = 'Resource') {
+    super(404, `${resource} not found`, { code: 'NOT_FOUND' });
   }
 }
 
 class UnauthorizedError extends AppError {
   constructor(message = 'Unauthorized access') {
-    super(401, message);
+    super(401, message, { code: 'UNAUTHORIZED' });
   }
 }
 
 class ForbiddenError extends AppError {
   constructor(message = 'Access forbidden') {
-    super(403, message);
+    super(403, message, { code: 'FORBIDDEN' });
+  }
+}
+
+class ConflictError extends AppError {
+  constructor(message = 'Conflict') {
+    super(409, message, { code: 'CONFLICT' });
   }
 }
 
 class DatabaseError extends AppError {
-  constructor(message) {
-    super(500, `Database error: ${message}`);
+  constructor(message, details, cause) {
+    super(500, `Database error: ${message}`, {
+      code: 'DATABASE_ERROR',
+      details,
+      cause,
+      isOperational: false,
+    });
   }
 }
 
 class TimeoutError extends AppError {
   constructor(operation) {
-    super(408, `Operation '${operation}' timed out`);
+    super(408, `Operation '${operation}' timed out`, { code: 'TIMEOUT' });
   }
 }
 
@@ -55,6 +72,7 @@ export {
   NotFoundError,
   UnauthorizedError,
   ForbiddenError,
+  ConflictError,
   DatabaseError,
   TimeoutError,
 };

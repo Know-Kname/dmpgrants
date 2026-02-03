@@ -1,0 +1,193 @@
+---
+description: CursorToys HTTP Requests - In-Editor API Testing
+alwaysApply: true
+applyTo: "**/*.{req,request}"
+version: 1.6.0
+---
+
+# CursorToys HTTP Requests
+
+Test HTTP requests without leaving Cursor/VS Code. This folder contains HTTP request files that can be executed directly from the editor.
+
+## File Location
+
+Create `.req` or `.request` files in this folder (.`cursor/http/`).
+
+## Supported Formats
+
+### cURL Commands
+Full cURL syntax support:
+
+```http
+## Get All Users
+curl --request GET \
+  --url https://api.example.com/users \
+  --header 'Authorization: Bearer {{API_KEY}}'
+```
+
+### REST Client Format
+`METHOD URL` with headers and body (similar to VS Code REST Client extension):
+
+```http
+### Get All Users
+GET {{BASE_URL}}/api/users
+Authorization: Bearer {{API_KEY}}
+
+### Create User
+POST {{BASE_URL}}/api/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+## Multiple Requests
+
+Use markdown sections (`## Section Title`) to organize multiple requests in one file. Each section gets its own "Send Request" CodeLens link.
+
+## Environment Variables
+
+Store variables in `.`cursor/http/.environments/` folder:
+- Files: `.env`, `.env.dev`, `.env.staging`, `.env.prod`, etc.
+- Use `{{variableName}}` syntax in requests
+- Switch environments via Command Palette: "CursorToys: Select HTTP Environment"
+- Status bar shows current active environment
+
+## Inline Variables
+
+Define variables directly in request files: `# @var VAR_NAME=value`
+- Global variables (before first `##` section) apply to all sections
+- Section-specific variables override global variables
+- Cascading behavior: section variables inherit from previous section or global
+
+## Helper Functions
+
+- `{{@prompt("label")}}` - Prompt user for input value
+- `{{@randomIn(min, max)}}` - Generate random integer
+- `{{@datetime}}` or `{{@datetime("format")}}` - Current date/time
+- `{{@uuid()}}` - Generate random UUID v4
+- `{{@randomString(length)}}` - Generate random alphanumeric string
+
+## Environment Decorators
+
+Use `# @env environmentName` before sections to specify environment:
+
+```http
+# @env prod
+
+## Request 1
+GET {{BASE_URL}}/api/users
+# Uses 'prod' environment
+
+# @env dev
+## Request 2
+POST {{BASE_URL}}/api/users
+# Uses 'dev' environment (explicit)
+
+## Request 3
+GET {{BASE_URL}}/api/posts
+# Uses 'dev' environment (inherited from previous section)
+```
+
+## Response Handling
+
+- Responses saved to `.res` or `.response` files (or preview-only mode)
+- Automatic JSON and XML formatting
+- Execution time displayed in response tab title
+- Syntax highlighting for both request and response files
+
+## Configuration
+
+- `cursorToys.httpRequestTimeout`: Timeout in seconds (default: 10)
+- `cursorToys.httpRequestSaveFile`: Save response to file or preview only (default: false)
+- `cursorToys.httpDefaultEnvironment`: Default environment name (default: "dev")
+- `cursorToys.environmentsFolder`: Folder name for environments (default: ".environments")
+
+## Usage
+
+1. Create a `.req` or `.request` file in this folder
+2. Write your HTTP request using cURL or REST Client format
+3. Click "Send Request" CodeLens link that appears above the request
+4. Response opens in a new tab with formatted output
+
+## Examples
+
+### Example 1: Simple GET Request
+```http
+## Get User
+GET https://api.github.com/users/octocat
+```
+
+### Example 2: Using Environment Variables
+1. Create `.environments/.env.dev`:
+```env
+BASE_URL=http://localhost:3000
+API_KEY=dev-key-123
+```
+2. Create request file:
+```http
+## Get Users
+GET {{BASE_URL}}/api/users
+Authorization: Bearer {{API_KEY}}
+```
+3. Switch environment via Command Palette: "CursorToys: Select HTTP Environment"
+4. Select `dev` environment
+5. Click "Send Request" - variables are automatically substituted
+
+### Example 3: Using Inline Variables
+```http
+# @var API_BASE=https://api.example.com
+# @var USER_ID=12345
+
+## Get User
+GET {{API_BASE}}/users/{{USER_ID}}
+
+# @var USER_ID=67890
+## Get Another User
+GET {{API_BASE}}/users/{{USER_ID}}
+```
+
+### Example 4: Using Helper Functions
+```http
+## Create User with Random Data
+POST {{BASE_URL}}/api/users
+Content-Type: application/json
+
+{
+  "id": "{{@uuid()}}",
+  "name": "User{{@randomString(8)}}",
+  "age": {{@randomIn(18, 65)}},
+  "createdAt": "{{@datetime}}",
+  "email": "{{@prompt("Enter email")}}"
+}
+```
+
+## Best Practices
+
+1. **Organize requests by feature** - use markdown sections (`## Feature Name`)
+2. **Use environment variables** - avoid hardcoding URLs and keys
+3. **Create multiple environments** - dev, staging, prod
+4. **Use inline variables for request-specific values** - `# @var` decorators
+5. **Use helper functions for dynamic data** - `@uuid()`, `@datetime`, etc.
+6. **Use environment decorators** - `# @env` for section-specific environments
+
+## Troubleshooting
+
+### HTTP Request Not Executing
+- Verify `curl` is installed and in PATH
+- Check file is in `.`cursor/http/` folder
+- Verify file extension is `.req` or `.request`
+
+### Environment Variables Not Resolving
+- Verify environment file exists in `.`cursor/http/.environments/`
+- Check environment name matches (case-insensitive)
+- Verify variable name matches exactly (case-insensitive)
+- Check active environment in status bar
+- Use `# @env` decorator for section-specific environments
+
+### CodeLens Not Showing
+- Verify file is in correct folder (`.`cursor/http/`)
+- Check file extension is `.req` or `.request`
+- Reload window: `Cmd+Shift+P` → "Developer: Reload Window"
