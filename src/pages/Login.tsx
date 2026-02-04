@@ -4,7 +4,8 @@ import { useAuth } from '../lib/auth';
 import { useTheme } from '../lib/theme';
 import { Button, Input, Card, Alert } from '../components/ui';
 import { getErrorMessage, getErrorRequestId } from '../lib/errors';
-import { Mail, Lock, Sun, Moon, Phone, MapPin, ExternalLink } from 'lucide-react';
+import { enableDemoMode } from '../lib/demo-data';
+import { Mail, Lock, Sun, Moon, Phone, ExternalLink, Play, Monitor } from 'lucide-react';
 import { COMPANY } from '../config/company';
 
 export default function Login() {
@@ -115,8 +116,33 @@ export default function Login() {
             </Button>
           </form>
 
-          {/* Demo credentials */}
+          {/* Preview Demo Section */}
           <div className="mt-6 pt-6 border-t border-border">
+            <div className="text-center mb-4">
+              <p className="text-sm text-foreground-muted mb-3">
+                Want to explore the system first?
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full group"
+                onClick={() => {
+                  enableDemoMode();
+                  navigate('/');
+                }}
+              >
+                <Play size={16} className="mr-2 group-hover:text-primary transition-colors" />
+                Preview Demo
+                <span className="ml-2 text-xs text-foreground-muted">(No login required)</span>
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2 my-4">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-foreground-muted">or sign in</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            
             <p className="text-xs text-foreground-muted text-center">
               Demo credentials: <span className="font-medium text-foreground">admin@dmp.com</span> / <span className="font-medium text-foreground">admin123</span>
             </p>

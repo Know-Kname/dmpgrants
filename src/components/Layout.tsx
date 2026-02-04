@@ -4,14 +4,14 @@ import { useTheme } from '../lib/theme';
 import {
   Home, FileText, Package, DollarSign, Users,
   FileSignature, Gift, ClipboardList, LogOut,
-  Sun, Moon, Monitor, ChevronDown, Phone, ExternalLink
+  Sun, Moon, Monitor, ChevronDown, Phone, ExternalLink, Eye, X
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Avatar } from './ui';
 import { COMPANY } from '../config/company';
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user, logout, isDemo } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -230,6 +230,34 @@ export default function Layout() {
 
         {/* Main Content */}
         <main className="flex-1 p-4 lg:p-8 pb-20 lg:pb-8 min-h-[calc(100vh-4rem)]">
+          {/* Demo Mode Banner */}
+          {isDemo && (
+            <div className="max-w-7xl mx-auto mb-4 animate-slide-up">
+              <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <Eye size={16} className="text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                      Preview Mode
+                    </p>
+                    <p className="text-xs text-amber-700/70 dark:text-amber-300/70">
+                      You're viewing demo data. Sign in to access real features.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 rounded-md transition-colors"
+                >
+                  Exit Preview
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="max-w-7xl mx-auto animate-fade-in">
             <Outlet />
           </div>

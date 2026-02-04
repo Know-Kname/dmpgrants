@@ -14,9 +14,30 @@
 
 A comprehensive business management solution for cemetery operations, serving three locations across Michigan with over 170 acres of sacred grounds.
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation)
+[Preview](#-preview) • [Features](#-features) • [Installation](#-installation) • [Deployment](#-deployment) • [Documentation](#-documentation)
 
 </div>
+
+---
+
+## 🎯 Preview
+
+**Try the application without any setup!**
+
+The application includes a **Demo Mode** that lets you explore all features with sample data:
+
+1. Visit the login page
+2. Click the **"Preview Demo"** button
+3. Explore the full interface with mock data
+
+Demo mode includes:
+- ✅ Complete UI navigation
+- ✅ Sample work orders, burials, inventory
+- ✅ Mock financial and grant data
+- ✅ Dark/Light theme switching
+- ✅ No database or server required
+
+> **Note:** Demo mode uses locally-stored sample data. Sign in with real credentials to access production features.
 
 ---
 
@@ -220,6 +241,36 @@ The UI is built on a custom design system with:
 
 ---
 
+## 🚀 Deployment
+
+Deploy to any platform with our comprehensive guides:
+
+| Platform | Description | Guide |
+|----------|-------------|-------|
+| 🐳 **Docker** | Containerized deployment for any environment | [View](#docker-deployment) |
+| 🪟 **Windows** | Native Windows with PostgreSQL | [View](#windows-deployment) |
+| 🐧 **Linux** | Ubuntu/Debian server deployment | [View](#linux-deployment) |
+| 🔧 **WSL2** | Windows Subsystem for Linux development | [View](#wsl2-development) |
+| ☁️ **Cloud** | Railway, Render, Vercel, Coolify | [View](#cloud-deployment) |
+| 📱 **Mobile** | iPhone/iPad/Android PWA installation | [View](#mobile-access) |
+
+**[📖 Full Deployment Guide →](./docs/DEPLOYMENT.md)**
+
+### Quick Deploy Options
+
+```bash
+# Docker (recommended)
+docker-compose up -d && npm run db:migrate && npm run dev
+
+# Railway (one-click cloud)
+railway up
+
+# Self-hosted (Coolify)
+curl -fsSL https://get.coolify.io | bash
+```
+
+---
+
 ## 🗺️ Roadmap
 
 - [ ] Mobile application (React Native)
@@ -239,6 +290,7 @@ The UI is built on a custom design system with:
 | Document | Description |
 |----------|-------------|
 | [CLAUDE.md](./CLAUDE.md) | Project overview and module details |
+| [Deployment Guide](./docs/DEPLOYMENT.md) | Complete deployment instructions for all platforms |
 | [Import Guide](./server/db/IMPORT-GUIDE.md) | Data import documentation |
 | [API Reference](./docs/api.md) | API endpoint documentation |
 

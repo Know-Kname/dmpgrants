@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import { authApi } from './api';
+import { isDemoMode, disableDemoMode, DEMO_USER } from './demo-data';
 
 interface AuthContextType {
   user: User | null;
@@ -8,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isDemo: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,13 +17,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    // Check for demo mode first
+    if (isDemoMode()) {
+      setToken('demo-token');
+      setUser(DEMO_USER);
+      setIsDemo(true);
+      return;
+    }
+    
+    // Then check for regular auth
+    const storedToken = localStorage.getItem('token') || localStorage.getItem('dmp-token');
+    const storedUser = localStorage.getItem('user') || localStorage.getItem('dmp-user');
     if (storedToken && storedUser) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        // Invalid user data
+      }
     }
   }, []);
 
@@ -59,13 +75,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    authApi.logout();
+    if (isDemo) {
+      disableDemoMode();
+      setIsDemo(false);
+    } else {
+      authApi.logout();
+    }
     setToken(null);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, isDemo }}>
       {children}
     </AuthContext.Provider>
   );
