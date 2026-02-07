@@ -3,6 +3,8 @@
 ## 1. Project Overview
 This project is a comprehensive business management solution for Detroit Memorial Park, designed to modernize operations from the legacy Cemsites system. It is a full-stack web application built with modern technologies.
 
+**See [LINEAR_PROJECT_PLAN.md](./LINEAR_PROJECT_PLAN.md) for the detailed roadmap and task status.**
+
 ## 2. Tech Stack & Architecture
 - **Frontend:** React 18, TypeScript, Tailwind CSS, Vite
 - **Backend:** Node.js, Express.js
@@ -50,6 +52,7 @@ This project is a comprehensive business management solution for Detroit Memoria
     *   **Dashboard:** Real-time data integration with quick actions.
     *   Backend error handling and validation infrastructure.
     *   Cloud deployment configurations.
+    *   **Hardening:** Security validation, Type safety fixes, Mobile responsive layout.
 *   **Pending/In-Progress:**
     *   Advanced reporting and data visualization (Charts).
     *   Mobile app specific features.
