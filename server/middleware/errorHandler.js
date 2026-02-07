@@ -123,7 +123,7 @@ const normalizeError = (err) => {
  * Main error handling middleware
  * Must be placed last in middleware chain
  */
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   const normalizedError = normalizeError(err);
 
   // Log all errors

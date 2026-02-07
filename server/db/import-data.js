@@ -337,7 +337,7 @@ async function importWorkOrders(adminId) {
 
   let imported = 0;
   let errors = 0;
-  let skipped = 0;
+  const skipped = 0;
 
   // Valid types and priorities for the database
   const validTypes = ['maintenance', 'burial_prep', 'grounds', 'repair', 'other'];
@@ -648,7 +648,7 @@ async function findOrCreateVendor(name, cache = new Map()) {
   }
   
   // Try to find existing vendor (case-insensitive)
-  let vendor = await query(
+  const vendor = await query(
     `SELECT id FROM vendors WHERE LOWER(name) = LOWER($1) LIMIT 1`,
     [name]
   );

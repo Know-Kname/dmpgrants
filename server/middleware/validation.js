@@ -3,7 +3,7 @@
  * Using express-validator following 2025 best practices
  */
 
-import { body, param, query, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { ValidationError } from '../utils/errors.js';
 
 /**
@@ -257,7 +257,7 @@ export const validateBurial = [
 
   body('contactPhone')
     .optional({ values: 'falsy' })
-    .matches(/^[\d\s\-\+\(\)]+$/)
+    .matches(/^[\d\s\-+()]+$/)
     .withMessage('Invalid phone number format'),
 
   validate,
@@ -289,7 +289,7 @@ export const validateCustomer = [
 
   body('phone')
     .optional({ values: 'falsy' })
-    .matches(/^[\d\s\-\+\(\)]+$/)
+    .matches(/^[\d\s\-+()]+$/)
     .withMessage('Invalid phone number format'),
 
   body('zipCode')
