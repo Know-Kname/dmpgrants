@@ -1,0 +1,62 @@
+# Cursor Rules - Detroit Memorial Park Cemetery Management System
+
+## Identity
+
+You are working on a full-stack cemetery business management application (React + Express + PostgreSQL). This is a private, proprietary project. Treat all data and business logic as sensitive.
+
+## Critical Rules (Never Break These)
+
+1. **Server code is plain JavaScript (ESM).** Never write TypeScript in the `server/` directory.
+2. **Frontend code is TypeScript (strict mode).** Every file in `src/` must be `.ts` or `.tsx`. No `any` types unless explicitly justified.
+3. **Never use `useEffect` + `fetch` for data loading.** Always use the `useData` hook or React Query patterns from `src/lib/query.tsx`.
+4. **Never interpolate user input into SQL strings.** Always use parameterized queries (`$1`, `$2`, etc.) with the `pg` driver.
+5. **Never introduce new UI component libraries.** Use the custom design system in `src/components/ui.tsx` (Button, Card, Modal, Input, Select, Badge, etc.).
+6. **Use semantic color tokens** (`bg-card`, `text-foreground`, `border-border`), never raw Tailwind colors like `bg-blue-500`.
+7. **The API client auto-converts between camelCase and snake_case.** Do not manually convert casing when using `api.get/post/put/patch/delete` from `src/lib/api.ts`.
+
+## Code Style
+
+- Frontend: camelCase for variables/functions, PascalCase for components/types/interfaces.
+- Backend: camelCase for JS variables/functions, snake_case for DB columns and API keys.
+- Files: PascalCase for React components, camelCase for hooks/utils, kebab-case for CSS.
+- Use `@/` path alias for imports from `src/` (e.g., `import { api } from '@/lib/api'`).
+
+## Before Committing
+
+- Run `npm run build` to verify TypeScript compiles with zero errors.
+- Run `npm run test` to verify tests pass.
+- No unused imports or variables (the build will fail).
+
+## Adding New Features (Checklist)
+
+When adding a new API endpoint + UI:
+1. `server/routes/<resource>.js` -- route handler (plain JS)
+2. `server/middleware/validation.js` -- express-validator chain
+3. `src/types/index.ts` -- TypeScript interface
+4. `src/lib/schemas.ts` -- Zod validation schema
+5. `src/lib/api.ts` -- use existing `api` client (no new fetch calls)
+6. Co-locate tests next to the source file as `*.test.{ts,tsx}` (frontend) or in `server/tests/` (backend).
+
+## Architecture Awareness
+
+- Middleware order: cors -> requestContext -> express.json -> normalizeRequest -> routes -> notFoundHandler -> errorHandler
+- `normalizeRequest` converts incoming camelCase body keys to snake_case, so `req.body` fields are already snake_case in route handlers.
+- Error classes live in `server/utils/errors.js`. Always throw structured errors (AppError, ValidationError, NotFoundError, etc.), never raw Error objects or string responses.
+- Auth: JWT Bearer token in `Authorization` header. Use `authenticateToken` and `requireRole` middleware from `server/middleware/auth.js`.
+- Database: Raw SQL via `pg` pool. UUIDs from `gen_random_uuid()`. All tables have `created_at`/`updated_at`.
+
+## Testing
+
+- Frontend: Vitest + jsdom + React Testing Library. Globals enabled (no need to import `describe`, `it`, `expect`, `vi`).
+- Backend: Vitest + Node environment + supertest. Tests in `server/tests/`.
+- Setup file: `src/tests/setup.ts` polyfills localStorage, matchMedia, scrollTo.
+
+## Context Priorities
+
+When you need to understand the codebase, read these files first:
+1. `src/types/index.ts` -- all domain types
+2. `src/lib/api.ts` -- how the frontend talks to the backend
+3. `src/lib/schemas.ts` -- all validation schemas
+4. `server/app.js` -- Express app setup and route mounting
+5. `server/db/schema.sql` -- database schema
+6. `src/components/ui.tsx` -- available UI components
