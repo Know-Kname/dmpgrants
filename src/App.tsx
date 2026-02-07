@@ -4,6 +4,11 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
+import WorkOrders from './pages/WorkOrders';
+import Inventory from './pages/Inventory';
+import Financial from './pages/Financial';
+import Burials from './pages/Burials';
+import Contracts from './pages/Contracts';
 import Grants from './pages/Grants';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

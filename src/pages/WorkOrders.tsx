@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { WorkOrder } from '../types';
 import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
-import { Plus, Search, Filter, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, ClipboardList, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function WorkOrders() {

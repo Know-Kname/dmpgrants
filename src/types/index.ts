@@ -16,9 +16,11 @@ export interface WorkOrder {
   priority: 'low' | 'medium' | 'high' | 'urgent';
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   assignedTo?: string;
+  assigned_to_name?: string; // Joined field
   dueDate?: Date;
   completedDate?: Date;
   createdBy: string;
+  created_by_name?: string; // Joined field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +35,7 @@ export interface InventoryItem {
   reorderPoint: number;
   unitPrice: number;
   vendorId?: string;
+  vendor_name?: string; // Joined field
   location?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -46,14 +49,19 @@ export interface Deposit {
   method: 'cash' | 'check' | 'credit_card' | 'wire' | 'other';
   reference?: string;
   customerId?: string;
+  first_name?: string; // Joined field
+  last_name?: string; // Joined field
   notes?: string;
   createdBy: string;
+  created_by_name?: string; // Joined field
   createdAt: Date;
 }
 
 export interface AccountsReceivable {
   id: string;
   customerId: string;
+  first_name?: string; // Joined field
+  last_name?: string; // Joined field
   invoiceNumber: string;
   amount: number;
   amountPaid: number;
@@ -66,6 +74,7 @@ export interface AccountsReceivable {
 export interface AccountsPayable {
   id: string;
   vendorId: string;
+  vendor_name?: string; // Joined field
   invoiceNumber: string;
   amount: number;
   amountPaid: number;
@@ -103,6 +112,8 @@ export interface Contract {
   contractNumber: string;
   type: 'pre_need' | 'at_need';
   customerId: string;
+  first_name?: string; // Joined field
+  last_name?: string; // Joined field
   totalAmount: number;
   amountPaid: number;
   status: 'active' | 'paid' | 'cancelled' | 'transferred';

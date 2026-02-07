@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { Contract } from '../types';
-import { Plus, Search, Filter, FileText, DollarSign, Calendar } from 'lucide-react';
+import { Plus, Search, Filter, FileText } from 'lucide-react';
 
 export default function Contracts() {
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -121,7 +121,7 @@ export default function Contracts() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    {(contract as any).first_name} {(contract as any).last_name}
+                    {contract.first_name} {contract.last_name}
                   </td>
                   <td className="px-6 py-4 capitalize">{contract.type.replace('_', ' ')}</td>
                   <td className="px-6 py-4 font-medium">{formatCurrency(Number(contract.totalAmount))}</td>
@@ -178,7 +178,7 @@ export default function Contracts() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'pre_need' | 'at_need' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="at_need">At Need</option>
@@ -221,7 +221,7 @@ export default function Contracts() {
                       value={formData.paymentPlan?.frequency}
                       onChange={(e) => setFormData({
                         ...formData,
-                        paymentPlan: { ...formData.paymentPlan!, frequency: e.target.value as any }
+                        paymentPlan: { ...formData.paymentPlan!, frequency: e.target.value as 'weekly' | 'bi_weekly' | 'monthly' | 'quarterly' }
                       })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     >

@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { validateInventory, validateUUIDParam } from '../middleware/validation.js';
 
 const router = express.Router();
 router.use(authenticateToken);
@@ -19,7 +20,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', validateInventory, async (req, res) => {
   try {
     const { name, category, sku, quantity, reorderPoint, unitPrice, vendorId, location } = req.body;
     const result = await query(
@@ -33,7 +34,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateUUIDParam, validateInventory, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, category, sku, quantity, reorderPoint, unitPrice, vendorId, location } = req.body;
@@ -49,7 +50,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateUUIDParam, async (req, res) => {
   try {
     await query('DELETE FROM inventory WHERE id = $1', [req.params.id]);
     res.json({ success: true });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { Deposit, AccountsReceivable, AccountsPayable } from '../types';
 import { Plus, Search, Filter, ArrowUpRight, ArrowDownLeft, DollarSign } from 'lucide-react';
@@ -185,7 +185,7 @@ export default function Financial() {
                 <tr key={deposit.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">{formatDate(deposit.date)}</td>
                   <td className="px-6 py-4 text-gray-900 font-medium">{deposit.reference || '-'}</td>
-                  <td className="px-6 py-4">{(deposit as any).first_name} {(deposit as any).last_name}</td>
+                  <td className="px-6 py-4">{deposit.first_name} {deposit.last_name}</td>
                   <td className="px-6 py-4 capitalize">{deposit.method.replace('_', ' ')}</td>
                   <td className="px-6 py-4 font-medium">{formatCurrency(Number(deposit.amount))}</td>
                   <td className="px-6 py-4">
@@ -198,7 +198,7 @@ export default function Financial() {
               {activeTab === 'receivables' && receivables.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">{item.invoiceNumber}</td>
-                  <td className="px-6 py-4">{(item as any).first_name} {(item as any).last_name}</td>
+                  <td className="px-6 py-4">{item.first_name} {item.last_name}</td>
                   <td className="px-6 py-4">{formatDate(item.dueDate)}</td>
                   <td className="px-6 py-4">{formatCurrency(Number(item.amount))}</td>
                   <td className="px-6 py-4">{formatCurrency(Number(item.amountPaid))}</td>
@@ -216,7 +216,7 @@ export default function Financial() {
               {activeTab === 'payables' && payables.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">{item.invoiceNumber}</td>
-                  <td className="px-6 py-4">{(item as any).vendor_name}</td>
+                  <td className="px-6 py-4">{item.vendor_name}</td>
                   <td className="px-6 py-4">{formatDate(item.dueDate)}</td>
                   <td className="px-6 py-4">{formatCurrency(Number(item.amount))}</td>
                   <td className="px-6 py-4">{formatCurrency(Number(item.amountPaid))}</td>

@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { validateWorkOrder, validateUUIDParam } from '../middleware/validation.js';
 
 const router = express.Router();
 router.use(authenticateToken);
@@ -22,7 +23,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create work order
-router.post('/', async (req, res) => {
+router.post('/', validateWorkOrder, async (req, res) => {
   try {
     const { title, description, type, priority, assignedTo, dueDate } = req.body;
     const result = await query(
@@ -37,7 +38,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update work order
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateUUIDParam, validateWorkOrder, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, type, priority, status, assignedTo, dueDate, completedDate } = req.body;
@@ -54,7 +55,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete work order
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateUUIDParam, async (req, res) => {
   try {
     await query('DELETE FROM work_orders WHERE id = $1', [req.params.id]);
     res.json({ success: true });

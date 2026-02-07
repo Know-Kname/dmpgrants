@@ -68,7 +68,7 @@ export default function DashboardCharts({ revenueData, burialData }: DashboardCh
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {burialData.map((entry, index) => (
+                  {burialData.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
