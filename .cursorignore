@@ -1,31 +1,15 @@
-# Documentation files (read on demand, don't auto-index)
-CLOUD_DEPLOYMENT.md
-IMPROVEMENTS_2025.md
-NOTION_VS_CUSTOM.md
-VISUAL_GUIDE.md
-QUICKSTART.md
-SETUP_GUIDE.md
-
-# Exported docs (HTML output, not source)
-docs/exports/
-docs/download-docs.html
-docs/index.html
-
 # Build artifacts and dependencies
 dist/
 node_modules/
 coverage/
 
-# Package lock (too large, rarely useful for AI)
+# Large generated files
 package-lock.json
 
-# Docker/deployment configs (not needed for coding tasks)
+# Deployment configs (not needed for coding)
 Dockerfile
 docker-compose.yml
-Procfile
-railway.toml
-render.yaml
-vercel.json
+.dockerignore
 
-# Shell scripts
-export-docs.sh
+# Docs directory (deployment guide -- read on demand)
+docs/

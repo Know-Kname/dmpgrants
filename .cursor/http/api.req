@@ -1,0 +1,90 @@
+# @var BASE_URL=http://localhost:3000
+# @var TOKEN=
+
+## Health Check
+GET {{BASE_URL}}/api/health
+
+## Login (Admin)
+POST {{BASE_URL}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dmp.com",
+  "password": "admin123"
+}
+
+## Register New User
+POST {{BASE_URL}}/api/auth/register
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "name": "Test User",
+  "email": "test@dmp.com",
+  "password": "testpass123",
+  "role": "staff"
+}
+
+## List Work Orders
+GET {{BASE_URL}}/api/work-orders?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## Create Work Order
+POST {{BASE_URL}}/api/work-orders
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "title": "Fix headstone in Section B",
+  "description": "Headstone is cracked and needs repair",
+  "type": "repair",
+  "priority": "high",
+  "status": "pending"
+}
+
+## List Grants
+GET {{BASE_URL}}/api/grants?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## Create Grant
+POST {{BASE_URL}}/api/grants
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "title": "VA Cemetery Improvement Grant",
+  "description": "Federal funding for cemetery improvements",
+  "type": "grant",
+  "source": "Department of Veterans Affairs",
+  "amount": 25000,
+  "status": "available",
+  "deadline": "2026-06-30"
+}
+
+## List Inventory
+GET {{BASE_URL}}/api/inventory?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## List Burials
+GET {{BASE_URL}}/api/burials?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## List Customers
+GET {{BASE_URL}}/api/customers?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## List Contracts
+GET {{BASE_URL}}/api/contracts?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## List Financial - Deposits
+GET {{BASE_URL}}/api/financial/deposits?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## List Financial - Receivables
+GET {{BASE_URL}}/api/financial/receivables?page=1&limit=10
+Authorization: Bearer {{TOKEN}}
+
+## List Financial - Payables
+GET {{BASE_URL}}/api/financial/payables?page=1&limit=10
+Authorization: Bearer {{TOKEN}}

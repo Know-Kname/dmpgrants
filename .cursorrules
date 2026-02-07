@@ -23,9 +23,10 @@ You are working on a full-stack cemetery business management application (React 
 
 ## Before Committing
 
-- Run `npm run build` to verify TypeScript compiles with zero errors.
+- Run `npm run lint` to verify ESLint passes with zero errors.
 - Run `npm run test` to verify tests pass.
-- No unused imports or variables (the build will fail).
+- No unused imports or variables (lint will catch them).
+- Optionally run `npm run check` for the full pipeline (lint + format + build + test).
 
 ## Adding New Features (Checklist)
 

@@ -21,10 +21,15 @@ Instructions for AI coding agents working on the Detroit Memorial Park Cemetery 
 ## Commands
 
 ```bash
-npm run dev            # Vite frontend (port 5173)
-npm run server         # Express backend (port 3000)
-npm run dev:full       # Both servers concurrently
+npm run dev:full       # Both frontend + backend concurrently
+npm run dev            # Vite frontend only (port 5173)
+npm run server         # Express backend only (port 3000)
 npm run build          # tsc + vite build (catches type errors)
+npm run lint           # ESLint (frontend TS + backend JS, separate rule sets)
+npm run lint:fix       # ESLint with auto-fix
+npm run format         # Prettier (format all files)
+npm run format:check   # Prettier (check only, no write)
+npm run check          # Full pipeline: lint + format:check + build + test
 npm run test           # Run all tests
 npm run test:frontend  # Frontend tests only
 npm run test:backend   # Backend tests only
@@ -33,7 +38,7 @@ npm run test:coverage  # Tests with coverage report
 npm run db:migrate     # Run database migrations
 npm run db:import      # Import data from Excel/CSV
 npm run db:reset       # Migrate + import (full reset)
-./setup.sh             # One-command first-time setup (installs deps, creates .env, starts DB, migrates)
+./setup.sh             # One-command first-time setup
 ```
 
 ## Project Structure
@@ -295,7 +300,7 @@ Required in `.env` (copy from `.env.example`):
 
 Before considering any change complete:
 
-- [ ] `npm run build` passes with zero TypeScript errors
+- [ ] `npm run lint` passes with zero errors
 - [ ] `npm run test` passes with zero failures
 - [ ] No unused imports or variables
 - [ ] New API endpoints have validation rules in `server/middleware/validation.js`
@@ -303,6 +308,13 @@ Before considering any change complete:
 - [ ] New form schemas added to `src/lib/schemas.ts`
 - [ ] Semantic color tokens used (no raw colors)
 - [ ] SQL queries are parameterized
+
+## Tooling
+
+- **Linting**: ESLint 9 (flat config in `eslint.config.js`). Separate rule sets for `src/` (TypeScript + React hooks), `server/` (plain JS + Node globals), and test files (relaxed).
+- **Formatting**: Prettier (config in `.prettierrc`). Single quotes, trailing commas, 100 char width.
+- **CI**: GitHub Actions (`.github/workflows/ci.yml`) runs lint + test on every push/PR to `main`.
+- **API Testing**: CursorToys HTTP requests in `.cursor/http/api.req` -- run endpoints directly from the editor.
 
 ## Git Practices
 

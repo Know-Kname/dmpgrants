@@ -87,27 +87,24 @@ Detroit Memorial Park Cemetery Management System is a full-stack application des
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/dmpgrants.git
+git clone https://github.com/Know-Kname/dmpgrants.git
 cd dmpgrants
 
-# Install dependencies
+# One-command setup (installs deps, creates .env, starts DB, migrates)
+./setup.sh
+
+# Start both frontend + backend
+npm run dev:full
+```
+
+Or step by step:
+
+```bash
 npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your database credentials
-
-# Start PostgreSQL (using Docker)
-docker-compose up -d
-
-# Run database migrations
+cp .env.example .env         # Edit with your DB credentials
+docker-compose up -d          # Start PostgreSQL
 npm run db:migrate
-
-# Import production data (optional)
-npm run db:import
-
-# Start development server
-npm run dev
+npm run dev:full              # Frontend (5173) + Backend (3000)
 ```
 
 The application will be available at `http://localhost:5173`
@@ -180,9 +177,14 @@ dmpgrants/
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start frontend dev server (Vite) |
-| `npm run server` | Start backend API server |
-| `npm run build` | Build for production |
+| `npm run dev:full` | Start frontend + backend concurrently |
+| `npm run dev` | Start frontend dev server only (Vite) |
+| `npm run server` | Start backend API server only |
+| `npm run build` | TypeScript check + production build |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format code with Prettier |
+| `npm run check` | Full pipeline: lint + format + build + test |
+| `npm run test` | Run all tests |
 | `npm run db:migrate` | Run database migrations |
 | `npm run db:import` | Import data from Excel/CSV |
 | `npm run db:reset` | Reset and reimport all data |
@@ -289,10 +291,10 @@ curl -fsSL https://get.coolify.io | bash
 
 | Document | Description |
 |----------|-------------|
-| [CLAUDE.md](./CLAUDE.md) | Project overview and module details |
+| [AGENTS.md](./AGENTS.md) | AI agent coding guidelines and project conventions |
+| [claude.md](./claude.md) | Project overview and module details |
 | [Deployment Guide](./docs/DEPLOYMENT.md) | Complete deployment instructions for all platforms |
 | [Import Guide](./server/db/IMPORT-GUIDE.md) | Data import documentation |
-| [API Reference](./docs/api.md) | API endpoint documentation |
 
 ---
 
@@ -301,10 +303,10 @@ curl -fsSL https://get.coolify.io | bash
 This is a private project for Detroit Memorial Park. Development guidelines:
 
 1. Create feature branches from `main`
-2. Follow TypeScript strict mode
-3. Include tests for new features
-4. Submit pull requests for review
-5. Maintain clean commit history
+2. Run `npm run check` before pushing (lint + format + build + test)
+3. Follow TypeScript strict mode (frontend) and ESLint rules
+4. Include tests for new features
+5. See [AGENTS.md](./AGENTS.md) for detailed coding conventions
 
 ---
 
