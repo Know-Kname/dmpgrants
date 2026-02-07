@@ -1,101 +1,39 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
 import { Card, CardHeader, CardBody, LoadingSpinner } from '../components/ui';
+import DashboardCharts from '../components/DashboardCharts';
 import {
   ClipboardList, Package, DollarSign, Users, AlertCircle,
   TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    workOrders: { total: 0, pending: 0, inProgress: 0, completed: 0 },
-    inventory: { total: 0, lowStock: 0 },
-    receivables: { total: 0, overdue: 0, amount: 0 },
-    burials: { total: 0, thisMonth: 0 },
-  });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [workOrders, inventory, receivables, burials] = await Promise.all([
-        api.get('/work-orders'),
-        api.get('/inventory'),
-        api.get('/financial/receivables'),
-        api.get('/burials'),
-      ]);
-
-      // Calculate work order stats
-      const woStats = {
-        total: workOrders.length,
-        pending: workOrders.filter((w: any) => w.status === 'pending').length,
-        inProgress: workOrders.filter((w: any) => w.status === 'in_progress').length,
-        completed: workOrders.filter((w: any) => w.status === 'completed').length,
-      };
-
-      // Calculate inventory stats
-      const invStats = {
-        total: inventory.length,
-        lowStock: inventory.filter((i: any) => i.quantity <= i.reorder_point).length,
-      };
-
-      // Calculate receivables stats
-      const arStats = {
-        total: receivables.length,
-        overdue: receivables.filter((r: any) => r.status === 'overdue').length,
-        amount: receivables.reduce((sum: number, r: any) => sum + (r.amount - r.amount_paid), 0),
-      };
-
-      // Calculate burial stats
-      const now = new Date();
-      const thisMonth = burials.filter((b: any) => {
-        const burialDate = new Date(b.burial_date);
-        return burialDate.getMonth() === now.getMonth() && burialDate.getFullYear() === now.getFullYear();
-      }).length;
-
-      setStats({
-        workOrders: woStats,
-        inventory: invStats,
-        receivables: arStats,
-        burials: { total: burials.length, thisMonth },
-      });
-
-      // Create recent activity feed
-      const activities = [
-        ...workOrders.slice(0, 3).map((w: any) => ({
-          type: 'work_order',
-          title: w.title,
-          status: w.status,
-          date: w.created_at,
-        })),
-        ...burials.slice(0, 2).map((b: any) => ({
-          type: 'burial',
-          title: `${b.deceased_first_name} ${b.deceased_last_name}`,
-          date: b.burial_date,
-        })),
-      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
-
-      setRecentActivity(activities);
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-    } finally {
-      setLoading(false);
+  const { data: stats, isLoading, error } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: async () => {
+      const data = await api.get('/dashboard/stats');
+      return data;
     }
-  };
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96 text-red-600">
+        Failed to load dashboard data. Please try again.
       </div>
     );
   }
@@ -153,7 +91,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Alerts */}
       {(stats.inventory.lowStock > 0 || stats.receivables.overdue > 0) && (
         <Card className="border-l-4 border-l-orange-500">
           <CardBody className="flex items-start space-x-3">
@@ -204,6 +142,12 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Charts Section */}
+      <DashboardCharts 
+        revenueData={stats.charts.revenue}
+        burialData={stats.charts.burialDistribution}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Work Orders Status */}
         <Card>
@@ -235,70 +179,33 @@ export default function Dashboard() {
           </CardBody>
         </Card>
 
-        {/* Recent Activity */}
+        {/* Quick Actions */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <h3 className="font-semibold text-gray-900">Recent Activity</h3>
+            <h3 className="font-semibold text-gray-900">Quick Actions</h3>
           </CardHeader>
           <CardBody>
-            <div className="space-y-4">
-              {recentActivity.map((activity, idx) => (
-                <div key={idx} className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
-                  <div className={`p-2 rounded-lg ${activity.type === 'work_order' ? 'bg-blue-100' : 'bg-purple-100'}`}>
-                    {activity.type === 'work_order' ? (
-                      <ClipboardList size={16} className="text-blue-600" />
-                    ) : (
-                      <Users size={16} className="text-purple-600" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {format(new Date(activity.date), 'MMM d, yyyy')}
-                    </p>
-                  </div>
-                  {activity.status && (
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      activity.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      activity.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {activity.status.replace('_', ' ')}
-                    </span>
-                  )}
-                </div>
-              ))}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <button onClick={() => navigate('/work-orders')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+                <ClipboardList className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">New Work Order</span>
+              </button>
+              <button onClick={() => navigate('/burials')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+                <Users className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Record Burial</span>
+              </button>
+              <button onClick={() => navigate('/financial')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+                <DollarSign className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Add Deposit</span>
+              </button>
+              <button onClick={() => navigate('/inventory')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
+                <Package className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Update Inventory</span>
+              </button>
             </div>
           </CardBody>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <h3 className="font-semibold text-gray-900">Quick Actions</h3>
-        </CardHeader>
-        <CardBody>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button onClick={() => navigate('/work-orders')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
-              <ClipboardList className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">New Work Order</span>
-            </button>
-            <button onClick={() => navigate('/burials')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
-              <Users className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Record Burial</span>
-            </button>
-            <button onClick={() => navigate('/financial')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
-              <DollarSign className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Add Deposit</span>
-            </button>
-            <button onClick={() => navigate('/inventory')} className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50 transition group">
-              <Package className="text-gray-400 group-hover:text-primary-600 mb-2" size={24} />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-primary-700">Update Inventory</span>
-            </button>
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 }

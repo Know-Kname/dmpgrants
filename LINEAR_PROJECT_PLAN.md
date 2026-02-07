@@ -42,7 +42,19 @@ This document outlines the project structure, cycles, and tasks for the Detroit 
 
 ---
 
-## 🚀 Cycle 3: Advanced Features & Integration (Upcoming)
+## 🔧 Cycle 3: Modernization & Technical Debt (Current)
+**Goal:** Adopt 2026 best practices for state management, architecture, and observability.
+
+### Todo
+- [ ] **Frontend:** Migrate from manual `useEffect` to **TanStack Query** for data fetching (Dashboard).
+- [ ] **Frontend:** Implement TanStack Query for all remaining modules (Work Orders, Inventory, etc.).
+- [ ] **Backend:** Refactor `routes/workOrders.js` into Controller-Service-Repository pattern.
+- [ ] **Backend:** Implement structured JSON logging (Pino) for better observability.
+- [ ] **Testing:** Set up Vitest and write unit tests for the new Service layer.
+
+---
+
+## 🚀 Cycle 4: Advanced Features & Integration (Upcoming)
 **Goal:** Enhance functionality with advanced reporting, legacy data support, and automation.
 
 ### Todo
@@ -56,18 +68,17 @@ This document outlines the project structure, cycles, and tasks for the Detroit 
 
 ---
 
-## 🧪 Cycle 4: Testing & CI/CD (Upcoming)
+## 🧪 Cycle 5: Testing & CI/CD (Upcoming)
 **Goal:** Establish a robust testing culture and automated deployment pipeline.
 
 ### Todo
-- [ ] **Testing:** Set up Jest/Vitest for backend unit tests.
 - [ ] **Testing:** Set up React Testing Library for frontend component tests.
 - [ ] **E2E:** Implement Playwright tests for critical user flows (Login -> Create Contract).
 - [ ] **CI/CD:** Configure GitHub Actions for automated linting, testing, and build on push.
 
 ---
 
-## 📱 Cycle 5: Mobile Experience (Future)
+## 📱 Cycle 6: Mobile Experience (Future)
 **Goal:** Optimize the experience for field staff using tablets and phones.
 
 ### Todo
