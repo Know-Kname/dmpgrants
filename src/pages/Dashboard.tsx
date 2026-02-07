@@ -9,6 +9,7 @@ import {
 import { format } from 'date-fns';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -135,18 +136,24 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Welcome back! Here's what's happening today.</p>
-        </div>
-        <div className="text-sm text-gray-500">
-          {format(new Date(), 'EEEE, MMMM d, yyyy')}
+      {/* Hero Section */}
+      <div className="relative rounded-2xl overflow-hidden shadow-xl mb-8 h-48 group">
+        <div 
+          className="absolute inset-0 bg-cover bg-center transform group-hover:scale-105 transition-transform duration-700"
+          style={{ 
+            backgroundImage: 'url("https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=2669&auto=format&fit=crop")' 
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
+        <div className="relative h-full flex flex-col justify-center px-8 text-white">
+          <h1 className="text-4xl font-bold mb-2">Welcome back, {user?.name || 'Admin'}</h1>
+          <p className="text-lg text-white/90 max-w-xl">
+            {format(new Date(), 'EEEE, MMMM d, yyyy')} • Detroit Memorial Park
+          </p>
         </div>
       </div>
 
-      {/* Alerts */}
+      {/* Stats Grid */}
       {(stats.inventory.lowStock > 0 || stats.receivables.overdue > 0) && (
         <Card className="border-l-4 border-l-orange-500">
           <CardBody className="flex items-start space-x-3">

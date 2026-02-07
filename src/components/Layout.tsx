@@ -48,8 +48,10 @@ export default function Layout() {
               >
                 {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">DMP</span>
+              <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-lg font-bold text-gray-900">Detroit Memorial Park</h1>
