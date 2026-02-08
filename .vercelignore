@@ -1,0 +1,35 @@
+# Development
+.cursor/
+.git/
+.github/
+node_modules/
+
+# Build artifacts
+dist/
+build/
+
+# Documentation (keep only essential)
+docs/
+*.md
+!README.md
+
+# Environment files (except example)
+.env*
+!.env.example
+
+# Server files (not needed for frontend)
+server/
+Dockerfile*
+docker-compose.yml
+railway.toml
+render.yaml
+Procfile
+
+# Testing and coverage
+coverage/
+.nyc_output/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
