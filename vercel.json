@@ -4,7 +4,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": null,
-  "installCommand": "npm ci",
+  "installCommand": "npm install",
   "rewrites": [
     {
       "source": "/(.*)",
