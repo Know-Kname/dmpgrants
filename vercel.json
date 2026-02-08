@@ -5,10 +5,10 @@
   "outputDirectory": "dist",
   "framework": null,
   "installCommand": "npm ci",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
