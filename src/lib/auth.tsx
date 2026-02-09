@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
   isDemo: boolean;
 }
 
@@ -18,6 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check for demo mode first
@@ -25,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken('demo-token');
       setUser(DEMO_USER);
       setIsDemo(true);
+      setIsLoading(false);
       return;
     }
     
@@ -34,11 +37,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (storedToken && storedUser) {
       setToken(storedToken);
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        // Ensure dates are Date objects
+        if (parsedUser.createdAt) {
+          parsedUser.createdAt = new Date(parsedUser.createdAt);
+        }
+        setUser(parsedUser);
       } catch {
         // Invalid user data
       }
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -68,7 +77,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setToken(data.token);
-      setUser(data.user);
+      // Ensure user matches User type
+      const userWithDate = {
+        ...data.user,
+        createdAt: new Date(), // Default to now if missing
+        role: data.user.role as 'admin' | 'manager' | 'staff'
+      };
+      setUser(userWithDate);
     } else {
       throw new Error('Login failed');
     }
@@ -86,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, isDemo }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, isLoading, isDemo }}>
       {children}
     </AuthContext.Provider>
   );
