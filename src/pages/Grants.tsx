@@ -106,9 +106,9 @@ export default function Grants() {
       type: formData.type,
       source: formData.source,
       amount: formData.amount ? parseFloat(formData.amount) : undefined,
-      deadline: formData.deadline || undefined,
+      deadline: formData.deadline ? new Date(formData.deadline) : undefined,
       status: formData.status,
-      applicationDate: formData.applicationDate || undefined,
+      applicationDate: formData.applicationDate ? new Date(formData.applicationDate) : undefined,
       notes: formData.notes || undefined,
     };
 
