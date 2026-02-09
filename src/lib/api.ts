@@ -18,7 +18,7 @@ export interface ApiError {
   message: string;
   code: string;
   statusCode: number;
-  details?: Record<string, unknown>;
+  details?: any;
   requestId?: string;
 }
 
@@ -69,7 +69,7 @@ export interface RequestConfig {
 export class ApiRequestError extends Error {
   public readonly statusCode: number;
   public readonly code: string;
-  public readonly details?: Record<string, unknown>;
+  public readonly details?: any;
   public readonly requestId?: string;
   public readonly isApiError = true;
 
