@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { Grant } from '../types';
-import { Card, CardBody, CardHeader, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
+import { Card, CardBody, Button, Modal, Input, Select, Textarea, Badge, EmptyState } from '../components/ui';
 import { Plus, Search, DollarSign, Calendar, ExternalLink, Gift, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 

@@ -204,7 +204,7 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((card, idx) => (
+        {statCards.map((card) => (
           <Card key={card.label} hoverable className="relative overflow-hidden group">
             <CardBody>
               <div className="flex items-start justify-between mb-4">
