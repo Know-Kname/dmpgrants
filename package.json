@@ -11,6 +11,7 @@
     "db:migrate": "node server/db/migrate.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
