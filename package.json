@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
-    "db:migrate": "node server/db/migrate.js"
+    "db:migrate": "node server/db/migrate.js",
+    "deploy:setup": "bash scripts/setup-deploy.sh",
+    "deploy:verify": "bash scripts/verify-deploy.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
